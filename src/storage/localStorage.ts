@@ -91,6 +91,12 @@ export class LocalStorageRepository implements StorageRepository {
     await this.saveData(data);
   }
 
+  async deleteAllCategories(): Promise<void> {
+    const data = await this.loadData();
+    data.categories = [];
+    await this.saveData(data);
+  }
+
   // Budgets
   async getBudgets(): Promise<Budget[]> {
     const data = await this.loadData();
@@ -129,6 +135,12 @@ export class LocalStorageRepository implements StorageRepository {
   async deleteBudget(id: string): Promise<void> {
     const data = await this.loadData();
     data.budgets = data.budgets.filter(b => b.id !== id);
+    await this.saveData(data);
+  }
+
+  async deleteAllBudgets(): Promise<void> {
+    const data = await this.loadData();
+    data.budgets = [];
     await this.saveData(data);
   }
 

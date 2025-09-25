@@ -151,7 +151,7 @@
   }
 
   .btn-danger {
-    @apply btn bg-danger-600 text-white hover:bg-danger-700 focus:ring-danger-500 active:bg-danger-800;
+    @apply btn bg-danger-400 text-white hover:bg-danger-500 focus:ring-danger-300 active:bg-danger-600;
   }
 
   .btn-outline {

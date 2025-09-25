@@ -48,7 +48,7 @@ export default function Layout() {
         className="show-mobile fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-pb z-50"
         style={{ height: "var(--nav-mobile-height)" }}
       >
-        <div className="grid grid-cols-5 h-full">
+        <div className={`grid grid-cols-4 h-full w-full`}>
           {navigation.map(item => (
             <NavLink
               key={item.name}

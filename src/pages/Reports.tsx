@@ -1,4 +1,5 @@
-import { useCategories, useBudgets } from "../hooks/useData";
+import { useCategories } from "../hooks/useCategories";
+import { useBudgets } from "../hooks/useBudgets";
 
 export default function Reports() {
   const { categories } = useCategories();

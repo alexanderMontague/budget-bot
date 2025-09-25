@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useCategories, useBudgets } from "../hooks/useData";
+import { useCategories } from "../hooks/useCategories";
+import { useBudgets } from "../hooks/useBudgets";
 
 export default function Budget() {
   const { categories } = useCategories();

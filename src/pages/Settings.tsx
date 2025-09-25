@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { useCategories } from "../hooks/useData";
+import { useCategories } from "../hooks/useCategories";
+import { useBudgets } from "../hooks/useBudgets";
+import { dataService } from "../services/dataService";
 
 export default function Settings() {
-  const { categories, createCategory, updateCategory, deleteCategory } =
-    useCategories();
+  const { categories, deleteCategory, deleteAllCategories } = useCategories();
+  const { deleteAllBudgets } = useBudgets();
   const [showAddCategory, setShowAddCategory] = useState(false);
 
   const handleDeleteCategory = async (categoryId: string) => {
@@ -127,10 +129,41 @@ export default function Settings() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <button className="btn-secondary">📤 Export CSV</button>
           <button className="btn-secondary">📥 Import CSV</button>
-          <button className="btn-secondary">🔄 Backup Data</button>
+          <button
+            className="btn-secondary"
+            onClick={async () => console.log(await dataService.exportData())}
+          >
+            📝 Log Data
+          </button>
+          <button
+            className="btn-danger"
+            onClick={() =>
+              confirm("Are you sure you want to delete all categories?") &&
+              deleteAllCategories()
+            }
+          >
+            🗑️ Clear Categories Data
+          </button>
+          <button
+            className="btn-danger"
+            onClick={() =>
+              confirm("Are you sure you want to delete all budgets?") &&
+              deleteAllBudgets()
+            }
+          >
+            🗑️ Clear Budgets Data
+          </button>
         </div>
         <div className="mt-4 pt-4 border-t border-gray-200">
-          <button className="text-danger-600 hover:text-danger-700 font-medium">
+          <button
+            onClick={() => {
+              if (confirm("Are you sure you want to delete all data?")) {
+                deleteAllBudgets();
+                deleteAllCategories();
+              }
+            }}
+            className="text-danger-600 hover:text-danger-700 font-medium"
+          >
             🗑️ Clear All Data
           </button>
           <p className="text-sm text-gray-500 mt-1">

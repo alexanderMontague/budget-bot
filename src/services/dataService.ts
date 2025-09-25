@@ -38,6 +38,10 @@ class DataService {
     return this.repository.deleteCategory(id);
   }
 
+  async deleteAllCategories(): Promise<void> {
+    return this.repository.deleteAllCategories();
+  }
+
   // Budgets
   async getBudgets(): Promise<Budget[]> {
     return this.repository.getBudgets();
@@ -59,6 +63,10 @@ class DataService {
     return this.repository.deleteBudget(id);
   }
 
+  async deleteAllBudgets(): Promise<void> {
+    return this.repository.deleteAllBudgets();
+  }
+
   // Utility methods
   async clearAllData(): Promise<void> {
     return this.repository.clearAllData();
@@ -73,20 +81,6 @@ class DataService {
   }
 
   // Helper methods
-  async getCurrentMonthBudget(): Promise<Budget | null> {
-    const now = new Date();
-    const currentMonth = `${now.getFullYear()}-${String(
-      now.getMonth() + 1
-    ).padStart(2, "0")}`;
-    const budgets = await this.getBudgets();
-    return budgets.find(b => b.month === currentMonth) || null;
-  }
-
-  async getBudgetForMonth(month: string): Promise<Budget | null> {
-    const budgets = await this.getBudgets();
-    return budgets.find(b => b.month === month) || null;
-  }
-
   private generateId(): string {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }

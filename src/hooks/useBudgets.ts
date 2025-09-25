@@ -1,0 +1,94 @@
+import { useState, useEffect, useCallback } from "react";
+import { dataService } from "../services/dataService";
+import type { Budget } from "../types";
+import { useDate } from "./useDate";
+
+export const useBudgets = () => {
+  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { currentMonthAndYear } = useDate();
+
+  const loadBudgets = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await dataService.getBudgets();
+      setBudgets(data);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load budgets");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const createBudget = useCallback(async (budgetData: Omit<Budget, "id">) => {
+    try {
+      const newBudget = await dataService.createBudget(budgetData);
+      setBudgets(prev => [...prev, newBudget]);
+      return newBudget;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create budget");
+      throw err;
+    }
+  }, []);
+
+  const updateBudget = useCallback(
+    async (id: string, updates: Partial<Budget>) => {
+      try {
+        const updatedBudget = await dataService.updateBudget(id, updates);
+        setBudgets(prev => prev.map(b => (b.id === id ? updatedBudget : b)));
+        return updatedBudget;
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to update budget"
+        );
+        throw err;
+      }
+    },
+    []
+  );
+
+  const deleteBudget = useCallback(async (id: string) => {
+    try {
+      await dataService.deleteBudget(id);
+      setBudgets(prev => prev.filter(b => b.id !== id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete budget");
+      throw err;
+    }
+  }, []);
+
+  const deleteAllBudgets = useCallback(async () => {
+    try {
+      await dataService.deleteAllBudgets();
+      setBudgets([]);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to delete all budgets"
+      );
+      throw err;
+    }
+  }, []);
+
+  const getCurrentBudget = useCallback(() => {
+    const data = budgets.find(b => b.month === currentMonthAndYear);
+    return data;
+  }, [budgets, currentMonthAndYear]);
+
+  useEffect(() => {
+    loadBudgets();
+  }, [loadBudgets]);
+
+  return {
+    budgets,
+    loading,
+    error,
+    createBudget,
+    updateBudget,
+    deleteBudget,
+    deleteAllBudgets,
+    loadBudgets,
+    getCurrentBudget,
+  };
+};

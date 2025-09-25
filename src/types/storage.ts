@@ -6,12 +6,14 @@ export interface StorageRepository {
   saveCategory(category: Category): Promise<Category>;
   updateCategory(id: string, category: Partial<Category>): Promise<Category>;
   deleteCategory(id: string): Promise<void>;
+  deleteAllCategories(): Promise<void>;
 
   // Budgets
   getBudgets(): Promise<Budget[]>;
   saveBudget(budget: Budget): Promise<Budget>;
   updateBudget(id: string, budget: Partial<Budget>): Promise<Budget>;
   deleteBudget(id: string): Promise<void>;
+  deleteAllBudgets(): Promise<void>;
 
   // Utility
   clearAllData(): Promise<void>;

@@ -1,13 +1,14 @@
-import { useCategories, useBudgets } from "../hooks/useData";
+import { useBudgets } from "../hooks/useBudgets";
+import { useDate } from "../hooks/useDate";
+import { useCategories } from "../hooks/useCategories";
+
 import type { CategoryProgress, Category, Budget } from "../types";
+import { useNavigate } from "react-router-dom";
 
 function calculateCategoryProgress(
   categories: Category[],
-  budgets: Budget[]
+  currentBudget: Budget
 ): CategoryProgress[] {
-  const currentMonth = "2025-09";
-  const currentBudget = budgets.find(b => b.month === currentMonth);
-
   if (!currentBudget) {
     return categories.map(category => ({
       category,
@@ -36,7 +37,10 @@ function calculateCategoryProgress(
 
 export default function Dashboard() {
   const { categories, loading: categoriesLoading } = useCategories();
-  const { budgets, loading: budgetsLoading } = useBudgets();
+  const { loading: budgetsLoading, getCurrentBudget } = useBudgets();
+  const currentBudget = getCurrentBudget();
+  const { currentMonthAndYearTitle } = useDate();
+  const navigate = useNavigate();
 
   const loading = categoriesLoading || budgetsLoading;
 
@@ -48,8 +52,25 @@ export default function Dashboard() {
     );
   }
 
-  const categoryProgress = calculateCategoryProgress(categories, budgets);
-  const currentBudget = budgets.find(b => b.month === "2025-09");
+  if (!currentBudget) {
+    return (
+      <div className="flex items-center flex-col justify-center min-h-64">
+        <div className="text-lg text-gray-500">No budget found</div>
+        <div className="mt-4">
+          <button
+            className="btn-primary"
+            onClick={() => {
+              navigate("/budget");
+            }}
+          >
+            Create Budget
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const categoryProgress = calculateCategoryProgress(categories, currentBudget);
   const totalBudgeted = currentBudget
     ? Object.values(currentBudget.allocations).reduce(
         (sum, amount) => sum + amount,
@@ -61,11 +82,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="heading-2">September 2025</h1>
-        <div className="flex flex-col sm:flex-row gap-3 sm:space-x-4 sm:gap-0">
-          <button className="btn-primary">+ Allocate Money</button>
-          <button className="btn-secondary">+ Add Category</button>
-        </div>
+        <h1 className="heading-2">{currentMonthAndYearTitle}</h1>
       </div>
 
       {/* Summary Cards */}
