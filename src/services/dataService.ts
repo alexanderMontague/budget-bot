@@ -1,6 +1,7 @@
 import type { StorageRepository } from "../types/storage";
 import { LocalStorageRepository } from "../storage/localStorage";
 import type { Category, Budget } from "../types";
+import { generateId } from "../util";
 
 class DataService {
   private repository: StorageRepository;
@@ -22,7 +23,7 @@ class DataService {
   async createCategory(categoryData: Omit<Category, "id">): Promise<Category> {
     const category: Category = {
       ...categoryData,
-      id: this.generateId(),
+      id: generateId(),
     };
     return this.repository.saveCategory(category);
   }
@@ -50,7 +51,7 @@ class DataService {
   async createBudget(budgetData: Omit<Budget, "id">): Promise<Budget> {
     const budget: Budget = {
       ...budgetData,
-      id: this.generateId(),
+      id: generateId(),
     };
     return this.repository.saveBudget(budget);
   }
@@ -78,11 +79,6 @@ class DataService {
 
   async importData(data: string): Promise<void> {
     return this.repository.importData(data);
-  }
-
-  // Helper methods
-  private generateId(): string {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 }
 

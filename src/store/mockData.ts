@@ -1,8 +1,6 @@
-import type { Category, Budget } from "../types";
-
-// COMMENTED OUT: Mock data seeds for development/testing
-// Keeping these here in case we need to seed data again in the future
-// The app now uses localStorage for persistent data storage
+import type { Category } from "../types";
+import { dataService } from "../services/dataService";
+import { generateId } from "../util";
 
 // export const mockAccounts: Account[] = [
 //   { id: "1", name: "Chase Checking", type: "bank", balance: 2500.0 },
@@ -10,15 +8,35 @@ import type { Category, Budget } from "../types";
 //   { id: "3", name: "Cash Wallet", type: "cash", balance: 150.0 },
 // ];
 
-export const mockCategories: Category[] = [
-  { id: "1", name: "Groceries", monthlyBudget: 500, color: "#22c55e" },
-  { id: "2", name: "Rent", monthlyBudget: 1200, color: "#3b82f6" },
-  { id: "3", name: "Utilities", monthlyBudget: 150, color: "#f59e0b" },
-  { id: "4", name: "Transportation", monthlyBudget: 200, color: "#8b5cf6" },
-  { id: "5", name: "Entertainment", monthlyBudget: 150, color: "#ec4899" },
-  { id: "6", name: "Dining Out", monthlyBudget: 300, color: "#ef4444" },
-  { id: "7", name: "Healthcare", monthlyBudget: 100, color: "#06b6d4" },
-  { id: "8", name: "Savings", monthlyBudget: 800, color: "#10b981" },
+export const initialCategories: Category[] = [
+  { id: generateId(), name: "Groceries", monthlyBudget: 500, color: "#22c55e" },
+  { id: generateId(), name: "Rent", monthlyBudget: 1200, color: "#3b82f6" },
+  { id: generateId(), name: "Utilities", monthlyBudget: 150, color: "#f59e0b" },
+  {
+    id: generateId(),
+    name: "Transportation",
+    monthlyBudget: 200,
+    color: "#8b5cf6",
+  },
+  {
+    id: generateId(),
+    name: "Entertainment",
+    monthlyBudget: 150,
+    color: "#ec4899",
+  },
+  {
+    id: generateId(),
+    name: "Dining Out",
+    monthlyBudget: 300,
+    color: "#ef4444",
+  },
+  {
+    id: generateId(),
+    name: "Healthcare",
+    monthlyBudget: 100,
+    color: "#06b6d4",
+  },
+  { id: generateId(), name: "Savings", monthlyBudget: 800, color: "#10b981" },
 ];
 
 // export const mockTransactions: Transaction[] = [
@@ -96,53 +114,50 @@ export const mockCategories: Category[] = [
 //   },
 // ];
 
-export const mockBudget: Budget = {
-  id: "budget-2025-09",
-  month: "2025-09",
-  allocations: {
-    "1": 500, // Groceries
-    "2": 1200, // Rent
-    "3": 150, // Utilities
-    "4": 200, // Transportation
-    "5": 150, // Entertainment
-    "6": 300, // Dining Out
-    "7": 100, // Healthcare
-    "8": 800, // Savings
-  },
-  availableToBudget: 100,
-};
+// export const mockBudget: Budget = {
+//   id: "budget-2025-09",
+//   month: "2025-09",
+//   allocations: {
+//     [generateId()]: 500, // Groceries
+//     [generateId()]: 1200, // Rent
+//     [generateId()]: 150, // Utilities
+//     [generateId()]: 200, // Transportation
+//     [generateId()]: 150, // Entertainment
+//     [generateId()]: 300, // Dining Out
+//     [generateId()]: 100, // Healthcare
+//     [generateId()]: 800, // Savings
+//   },
+//   availableToBudget: 100,
+// };
 
 // Helper function to seed data if needed during development
 export const seedData = async () => {
-  const { dataService } = await import("../services/dataService");
-
   try {
     // Check if data already exists
     const existingCategories = await dataService.getCategories();
-    const existingBudgets = await dataService.getBudgets();
-
-    if (existingCategories.length > 0 || existingBudgets.length > 0) {
-      console.log("Data already exists, skipping seed");
-      return;
-    }
+    // const existingBudgets = await dataService.getBudgets();
 
     // Seed categories
-    console.log("Seeding categories...");
-    for (const category of mockCategories) {
-      await dataService.createCategory({
-        name: category.name,
-        monthlyBudget: category.monthlyBudget,
-        color: category.color,
-      });
+    if (existingCategories.length === 0) {
+      console.log("Seeding categories...");
+      for (const category of initialCategories) {
+        await dataService.createCategory({
+          name: category.name,
+          monthlyBudget: category.monthlyBudget,
+          color: category.color,
+        });
+      }
     }
 
     // Seed budget
-    console.log("Seeding budget...");
-    await dataService.createBudget({
-      month: mockBudget.month,
-      allocations: mockBudget.allocations,
-      availableToBudget: mockBudget.availableToBudget,
-    });
+    // if (existingBudgets.length === 0) {
+    //   console.log("Seeding budget...");
+    //   await dataService.createBudget({
+    //     month: mockBudget.month,
+    //     allocations: mockBudget.allocations,
+    //     availableToBudget: mockBudget.availableToBudget,
+    //   });
+    // }
 
     console.log("Data seeding completed successfully!");
   } catch (error) {

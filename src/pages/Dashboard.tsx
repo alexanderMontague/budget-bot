@@ -55,7 +55,9 @@ export default function Dashboard() {
   if (!currentBudget) {
     return (
       <div className="flex items-center flex-col justify-center min-h-64">
-        <div className="text-lg text-gray-500">No budget found</div>
+        <div className="text-lg text-gray-500">
+          No budget found for {currentMonthAndYearTitle}
+        </div>
         <div className="mt-4">
           <button
             className="btn-primary"
