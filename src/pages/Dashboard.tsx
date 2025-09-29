@@ -1,13 +1,16 @@
 import { useBudgets } from "../hooks/useBudgets";
 import { useDate } from "../hooks/useDate";
 import { useCategories } from "../hooks/useCategories";
+import { useTransactions } from "../hooks/useTransactions";
 
-import type { CategoryProgress, Category, Budget } from "../types";
+import type { CategoryProgress, Category, Budget, Transaction } from "../types";
 import { useNavigate } from "react-router-dom";
 
 function calculateCategoryProgress(
   categories: Category[],
-  currentBudget: Budget
+  currentBudget: Budget,
+  transactions: Transaction[],
+  currentMonth: string
 ): CategoryProgress[] {
   if (!currentBudget) {
     return categories.map(category => ({
@@ -21,8 +24,19 @@ function calculateCategoryProgress(
 
   return categories.map(category => {
     const budgeted = currentBudget.allocations[category.id] || 0;
-    // For now, spent is 0 since we removed transaction tracking
-    const spent = 0;
+
+    // Calculate spent amount from transactions for this month
+    const spent = Math.abs(
+      transactions
+        .filter(
+          t =>
+            t.categoryId === category.id &&
+            t.date.startsWith(currentMonth) &&
+            t.amount < 0 // Only count expenses
+        )
+        .reduce((sum, t) => sum + t.amount, 0)
+    );
+
     const remaining = budgeted - spent;
 
     return {
@@ -38,11 +52,12 @@ function calculateCategoryProgress(
 export default function Dashboard() {
   const { categories, loading: categoriesLoading } = useCategories();
   const { loading: budgetsLoading, getCurrentBudget } = useBudgets();
+  const { transactions, loading: transactionsLoading } = useTransactions();
   const currentBudget = getCurrentBudget();
-  const { currentMonthAndYearTitle } = useDate();
+  const { currentMonthAndYearTitle, currentMonthAndYear } = useDate();
   const navigate = useNavigate();
 
-  const loading = categoriesLoading || budgetsLoading;
+  const loading = categoriesLoading || budgetsLoading || transactionsLoading;
 
   if (loading) {
     return (
@@ -72,7 +87,12 @@ export default function Dashboard() {
     );
   }
 
-  const categoryProgress = calculateCategoryProgress(categories, currentBudget);
+  const categoryProgress = calculateCategoryProgress(
+    categories,
+    currentBudget,
+    transactions,
+    currentMonthAndYear
+  );
   const totalBudgeted = currentBudget
     ? Object.values(currentBudget.allocations).reduce(
         (sum, amount) => sum + amount,

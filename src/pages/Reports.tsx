@@ -1,19 +1,32 @@
 import { useCategories } from "../hooks/useCategories";
 import { useBudgets } from "../hooks/useBudgets";
+import { useTransactions } from "../hooks/useTransactions";
+import { useDate } from "../hooks/useDate";
 
 export default function Reports() {
   const { categories } = useCategories();
   const { budgets } = useBudgets();
-  const currentMonth = "2025-09";
+  const { transactions } = useTransactions();
+  const { currentMonthAndYear } = useDate();
 
-  const currentBudget = budgets.find(b => b.month === currentMonth);
+  const currentBudget = budgets.find(b => b.month === currentMonthAndYear);
+  const currentMonthTransactions = transactions.filter(t =>
+    t.date.startsWith(currentMonthAndYear)
+  );
 
-  // Calculate spending by category for current month (showing 0 spent since we removed transactions)
+  // Calculate spending by category for current month
   const categorySpending = categories
     .map(category => {
-      const spent = 0; // No transactions to calculate from
+      const categoryTransactions = currentMonthTransactions.filter(
+        t => t.categoryId === category.id
+      );
+      const spent = Math.abs(
+        categoryTransactions
+          .filter(t => t.amount < 0)
+          .reduce((sum, t) => sum + t.amount, 0)
+      );
       const budgeted = currentBudget?.allocations[category.id] || 0;
-      const percentage = 0; // No spending to calculate percentage
+      const percentage = budgeted > 0 ? (spent / budgeted) * 100 : 0;
 
       return {
         category: category.name,
@@ -23,24 +36,23 @@ export default function Reports() {
         color: category.color || "#6b7280",
       };
     })
-    .filter(item => item.budgeted > 0)
-    .sort((a, b) => b.budgeted - a.budgeted); // Sort by budgeted instead of spent
+    .filter(item => item.budgeted > 0 || item.spent > 0)
+    .sort((a, b) => b.spent - a.spent);
 
-  const totalSpent = 0; // No transactions
+  const totalSpent = Math.abs(
+    currentMonthTransactions
+      .filter(t => t.amount < 0)
+      .reduce((sum, t) => sum + t.amount, 0)
+  );
   const totalBudgeted = currentBudget
     ? Object.values(currentBudget.allocations).reduce(
         (sum, amount) => sum + amount,
         0
       )
     : 0;
-  const totalIncome = 0; // No transactions
-
-  // Recent trends (mock data for demonstration)
-  const monthlyTrends = [
-    { month: "Jul 2025", spent: 2650, income: 3500 },
-    { month: "Aug 2025", spent: 2890, income: 3500 },
-    { month: "Sep 2025", spent: totalSpent, income: totalIncome },
-  ];
+  const totalIncome = currentMonthTransactions
+    .filter(t => t.amount > 0)
+    .reduce((sum, t) => sum + t.amount, 0);
 
   return (
     <div className="space-y-6">
@@ -177,40 +189,80 @@ export default function Reports() {
           </div>
         </div>
 
-        {/* Monthly Trends */}
+        {/* Recent Transactions */}
         <div className="card">
-          <h2 className="heading-4 mb-4">3-Month Trend</h2>
-          <div className="space-y-4">
-            {monthlyTrends.map(month => {
-              const savings = month.income - month.spent;
-              const savingsRate = (savings / month.income) * 100;
-
-              return (
-                <div
-                  key={month.month}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
-                >
-                  <div>
-                    <h3 className="font-medium text-gray-900">{month.month}</h3>
+          <h2 className="heading-4 mb-4">Recent Transactions</h2>
+          <div className="space-y-3">
+            {currentMonthTransactions.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <div className="text-4xl mb-2">📄</div>
+                <p>No transactions imported yet</p>
+                <p className="text-sm mt-1">
+                  Go to Settings to import PDF statements
+                </p>
+              </div>
+            ) : (
+              <>
+                {currentMonthTransactions
+                  .sort(
+                    (a, b) =>
+                      new Date(b.date).getTime() - new Date(a.date).getTime()
+                  )
+                  .slice(0, 10)
+                  .map(transaction => {
+                    const category = categories.find(
+                      c => c.id === transaction.categoryId
+                    );
+                    return (
+                      <div
+                        key={transaction.id}
+                        className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0"
+                      >
+                        <div className="flex items-center space-x-3 flex-1 min-w-0">
+                          <div
+                            className="w-3 h-3 rounded-full flex-shrink-0"
+                            style={{
+                              backgroundColor: category?.color || "#6b7280",
+                            }}
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-gray-900 truncate">
+                              {transaction.merchant}
+                            </p>
+                            <p className="text-sm text-gray-500 truncate">
+                              {transaction.date} •{" "}
+                              {category?.name || "Uncategorized"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p
+                            className={`font-semibold ${
+                              transaction.amount < 0
+                                ? "text-red-600"
+                                : "text-green-600"
+                            }`}
+                          >
+                            {transaction.amount < 0 ? "-" : "+"}$
+                            {Math.abs(transaction.amount).toFixed(2)}
+                          </p>
+                          <p className="text-xs text-gray-500 uppercase">
+                            {transaction.accountType}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                {currentMonthTransactions.length > 10 && (
+                  <div className="text-center pt-3">
                     <p className="text-sm text-gray-500">
-                      Savings: ${savings.toFixed(2)} ({savingsRate.toFixed(1)}%)
+                      ... and {currentMonthTransactions.length - 10} more
+                      transactions
                     </p>
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm text-gray-500">Income</div>
-                    <div className="font-semibold text-success-600">
-                      ${month.income.toFixed(2)}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm text-gray-500">Spent</div>
-                    <div className="font-semibold text-danger-600">
-                      ${month.spent.toFixed(2)}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>

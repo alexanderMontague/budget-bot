@@ -1,11 +1,12 @@
 import type { StorageRepository, StorageConfig } from "../types/storage";
-import type { Category, Budget } from "../types";
+import type { Category, Budget, Transaction } from "../types";
 
 const DEFAULT_STORAGE_KEY = "budget-bot-data";
 
 interface StorageData {
   categories: Category[];
   budgets: Budget[];
+  transactions: Transaction[];
   lastUpdated: string;
 }
 
@@ -43,6 +44,7 @@ export class LocalStorageRepository implements StorageRepository {
     return {
       categories: [],
       budgets: [],
+      transactions: [],
       lastUpdated: new Date().toISOString(),
     };
   }
@@ -144,6 +146,60 @@ export class LocalStorageRepository implements StorageRepository {
     data.budgets = [];
     await this.saveData(data);
     console.log("Budgets deleted", data, await this.getBudgets());
+  }
+
+  // Transactions
+  async getTransactions(): Promise<Transaction[]> {
+    const data = await this.loadData();
+    return data.transactions || [];
+  }
+
+  async saveTransaction(transaction: Transaction): Promise<Transaction> {
+    const data = await this.loadData();
+    const existingIndex = data.transactions.findIndex(
+      t => t.id === transaction.id
+    );
+
+    if (existingIndex >= 0) {
+      data.transactions[existingIndex] = transaction;
+    } else {
+      data.transactions.push(transaction);
+    }
+
+    await this.saveData(data);
+    return transaction;
+  }
+
+  async updateTransaction(
+    id: string,
+    updates: Partial<Transaction>
+  ): Promise<Transaction> {
+    const data = await this.loadData();
+    const transactionIndex = data.transactions.findIndex(t => t.id === id);
+
+    if (transactionIndex === -1) {
+      throw new Error(`Transaction with id ${id} not found`);
+    }
+
+    const updatedTransaction = {
+      ...data.transactions[transactionIndex],
+      ...updates,
+    };
+    data.transactions[transactionIndex] = updatedTransaction;
+    await this.saveData(data);
+    return updatedTransaction;
+  }
+
+  async deleteTransaction(id: string): Promise<void> {
+    const data = await this.loadData();
+    data.transactions = data.transactions.filter(t => t.id !== id);
+    await this.saveData(data);
+  }
+
+  async deleteAllTransactions(): Promise<void> {
+    const data = await this.loadData();
+    data.transactions = [];
+    await this.saveData(data);
   }
 
   // Utility methods

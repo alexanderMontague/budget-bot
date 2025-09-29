@@ -1,4 +1,4 @@
-import type { Category, Budget } from "./index";
+import type { Category, Budget, Transaction } from "./index";
 
 export interface StorageRepository {
   // Categories
@@ -14,6 +14,16 @@ export interface StorageRepository {
   updateBudget(id: string, budget: Partial<Budget>): Promise<Budget>;
   deleteBudget(id: string): Promise<void>;
   deleteAllBudgets(): Promise<void>;
+
+  // Transactions
+  getTransactions(): Promise<Transaction[]>;
+  saveTransaction(transaction: Transaction): Promise<Transaction>;
+  updateTransaction(
+    id: string,
+    transaction: Partial<Transaction>
+  ): Promise<Transaction>;
+  deleteTransaction(id: string): Promise<void>;
+  deleteAllTransactions(): Promise<void>;
 
   // Utility
   clearAllData(): Promise<void>;

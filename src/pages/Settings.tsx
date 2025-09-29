@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { useCategories } from "../hooks/useCategories";
 import { useBudgets } from "../hooks/useBudgets";
+import { useTransactions } from "../hooks/useTransactions";
 import { dataService } from "../services/dataService";
 import AddCategoryModal from "../components/AddCategoryModal";
+import TransactionUpload from "../components/TransactionUpload";
 
 export default function Settings() {
   const { categories, createCategory, deleteCategory, deleteAllCategories } =
     useCategories();
   const { deleteAllBudgets } = useBudgets();
+  const { deleteAllTransactions } = useTransactions();
   const [showAddCategory, setShowAddCategory] = useState(false);
+  const [showTransactionUpload, setShowTransactionUpload] = useState(false);
 
   const handleAddCategory = async (categoryData: {
     name: string;
@@ -17,7 +21,7 @@ export default function Settings() {
   }) => {
     try {
       await createCategory(categoryData);
-    } catch (error) {
+    } catch {
       alert("Failed to add category. Please try again.");
     }
   };
@@ -30,7 +34,7 @@ export default function Settings() {
     ) {
       try {
         await deleteCategory(categoryId);
-      } catch (error) {
+      } catch {
         alert("Failed to delete category. Please try again.");
       }
     }
@@ -128,7 +132,12 @@ export default function Settings() {
       <div className="card">
         <h2 className="heading-4 mb-4">Data Management</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="btn-secondary">📥 Import CSV</button>
+          <button
+            className="btn-secondary"
+            onClick={() => setShowTransactionUpload(true)}
+          >
+            📥 Import Transactions
+          </button>
           <button
             className="btn-secondary"
             onClick={async () => console.log(await dataService.exportData())}
@@ -153,6 +162,15 @@ export default function Settings() {
           >
             🗑️ Clear Budgets Data
           </button>
+          <button
+            className="btn-danger"
+            onClick={() =>
+              confirm("Are you sure you want to delete all transactions?") &&
+              deleteAllTransactions()
+            }
+          >
+            🗑️ Clear Transactions Data
+          </button>
         </div>
         <div className="mt-4 pt-4 border-t border-gray-200">
           <button
@@ -175,6 +193,11 @@ export default function Settings() {
         isOpen={showAddCategory}
         onClose={() => setShowAddCategory(false)}
         onSubmit={handleAddCategory}
+      />
+
+      <TransactionUpload
+        isOpen={showTransactionUpload}
+        onClose={() => setShowTransactionUpload(false)}
       />
     </div>
   );

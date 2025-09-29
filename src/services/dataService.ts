@@ -1,6 +1,6 @@
 import type { StorageRepository } from "../types/storage";
 import { LocalStorageRepository } from "../storage/localStorage";
-import type { Category, Budget } from "../types";
+import type { Category, Budget, Transaction } from "../types";
 import { generateId } from "../util";
 
 class DataService {
@@ -66,6 +66,36 @@ class DataService {
 
   async deleteAllBudgets(): Promise<void> {
     return this.repository.deleteAllBudgets();
+  }
+
+  // Transactions
+  async getTransactions(): Promise<Transaction[]> {
+    return this.repository.getTransactions();
+  }
+
+  async createTransaction(
+    transactionData: Omit<Transaction, "id">
+  ): Promise<Transaction> {
+    const transaction: Transaction = {
+      ...transactionData,
+      id: generateId(),
+    };
+    return this.repository.saveTransaction(transaction);
+  }
+
+  async updateTransaction(
+    id: string,
+    updates: Partial<Transaction>
+  ): Promise<Transaction> {
+    return this.repository.updateTransaction(id, updates);
+  }
+
+  async deleteTransaction(id: string): Promise<void> {
+    return this.repository.deleteTransaction(id);
+  }
+
+  async deleteAllTransactions(): Promise<void> {
+    return this.repository.deleteAllTransactions();
   }
 
   // Utility methods
