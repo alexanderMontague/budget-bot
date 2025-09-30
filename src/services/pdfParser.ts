@@ -34,7 +34,12 @@ export class PdfParser {
     },
     {
       name: "cibc",
-      patterns: ["cibc", "canadian imperial bank"],
+      patterns: [
+        "cibc",
+        "canadian imperial bank",
+        "cibc advisor",
+        "cibc online banking",
+      ],
       parseStatement: (text, errors) => this.parseCibcStatement(text, errors),
     },
   ];
@@ -84,10 +89,6 @@ export class PdfParser {
     }
   }
 
-  static registerBankParser(parser: BankParser): void {
-    this.bankParsers.push(parser);
-  }
-
   private static detectBankParser(text: string): BankParser | null {
     const lowerText = text.toLowerCase();
 
@@ -103,30 +104,27 @@ export class PdfParser {
     errors: string[]
   ): PdfParseResult {
     const transactions: ParsedTransaction[] = [];
-    const lines = text
-      .split("\n")
-      .map(line => line.trim())
-      .filter(Boolean);
 
-    // AMEX statement patterns
-    // Look for date patterns: MM/DD/YY or MM/DD/YYYY
-    const datePattern = /(\d{1,2}\/\d{1,2}\/\d{2,4})/;
+    debugger;
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const dateMatch = line.match(datePattern);
+    const pageTransactions = text
+      .split("Date   Description   Amount  ")
+      .slice(1);
 
-      if (dateMatch) {
-        try {
-          const transaction = this.parseAmexTransaction(line);
-          if (transaction) {
-            transactions.push(transaction);
-          }
-        } catch (error) {
-          errors.push(
-            `Failed to parse AMEX transaction on line ${i + 1}: ${error}`
-          );
-        }
+    let i = 0;
+    while (i < 5) {
+      try {
+        i++;
+        transactions.push({
+          date: "",
+          merchant: "",
+          amount: 0,
+          description: "",
+          accountType: "amex",
+          confidence: 0,
+        });
+      } catch (error) {
+        errors.push(`Failed to parse AMEX transaction: ${error}`);
       }
     }
 
@@ -140,79 +138,26 @@ export class PdfParser {
     };
   }
 
-  private static parseAmexTransaction(line: string): ParsedTransaction | null {
-    // AMEX format: DATE MERCHANT AMOUNT
-    // Example: "01/15/25 STARBUCKS #12345 NEW YORK NY $5.67"
-
-    const datePattern = /(\d{1,2}\/\d{1,2}\/\d{2,4})/;
-    const amountPattern = /\$?([\d,]+\.?\d{0,2})$/;
-
-    const dateMatch = line.match(datePattern);
-    const amountMatch = line.match(amountPattern);
-
-    if (!dateMatch || !amountMatch) {
-      return null;
-    }
-
-    const rawDate = dateMatch[1];
-    const rawAmount = amountMatch[1].replace(/,/g, "");
-    const amount = -parseFloat(rawAmount); // AMEX amounts are expenses (negative)
-
-    // Convert MM/DD/YY to YYYY-MM-DD
-    const [month, day, year] = rawDate.split("/");
-    const fullYear = year.length === 2 ? `20${year}` : year;
-    const date = `${fullYear}-${month.padStart(2, "0")}-${day.padStart(
-      2,
-      "0"
-    )}`;
-
-    // Extract merchant name (everything between date and amount)
-    const merchantText = line
-      .replace(dateMatch[0], "")
-      .replace(amountMatch[0], "")
-      .trim();
-
-    const merchant = this.cleanMerchantName(merchantText);
-
-    return {
-      date,
-      merchant,
-      amount,
-      description: merchantText,
-      accountType: "amex",
-      confidence: 0.8,
-    };
-  }
-
   private static parseCibcStatement(
     text: string,
     errors: string[]
   ): PdfParseResult {
     const transactions: ParsedTransaction[] = [];
-    const lines = text
-      .split("\n")
-      .map(line => line.trim())
-      .filter(Boolean);
 
-    // CIBC statement patterns
-    // Look for transaction lines with date, description, and amount
-    const datePattern = /(\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4})/;
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const dateMatch = line.match(datePattern);
-
-      if (dateMatch) {
-        try {
-          const transaction = this.parseCibcTransaction(line);
-          if (transaction) {
-            transactions.push(transaction);
-          }
-        } catch (error) {
-          errors.push(
-            `Failed to parse CIBC transaction on line ${i + 1}: ${error}`
-          );
-        }
+    let i = 0;
+    while (i < 5) {
+      i++;
+      try {
+        transactions.push({
+          date: "",
+          merchant: "",
+          amount: 0,
+          description: "",
+          accountType: "cibc",
+          confidence: 0,
+        });
+      } catch (error) {
+        errors.push(`Failed to parse CIBC transaction: ${error}`);
       }
     }
 
@@ -224,72 +169,5 @@ export class PdfParser {
         statementPeriod: this.extractCibcStatementPeriod(text),
       },
     };
-  }
-
-  private static parseCibcTransaction(line: string): ParsedTransaction | null {
-    // CIBC format varies, but typically: DATE DESCRIPTION AMOUNT
-    // Example: "2025-01-15 INTERAC e-Transfer STARBUCKS -5.67"
-
-    const datePattern = /(\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4})/;
-    const amountPattern = /([-]?\$?[\d,]+\.?\d{0,2})$/;
-
-    const dateMatch = line.match(datePattern);
-    const amountMatch = line.match(amountPattern);
-
-    if (!dateMatch || !amountMatch) {
-      return null;
-    }
-
-    let date = dateMatch[1];
-    const rawAmount = amountMatch[1].replace(/\$|,/g, "");
-    const amount = parseFloat(rawAmount);
-
-    // Convert MM/DD/YYYY to YYYY-MM-DD if needed
-    if (date.includes("/")) {
-      const [month, day, year] = date.split("/");
-      date = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-    }
-
-    // Extract description (everything between date and amount)
-    const description = line
-      .replace(dateMatch[0], "")
-      .replace(amountMatch[0], "")
-      .trim();
-
-    const merchant = this.cleanMerchantName(description);
-
-    return {
-      date,
-      merchant,
-      amount,
-      description,
-      accountType: "cibc",
-      confidence: 0.8,
-    };
-  }
-
-  private static cleanMerchantName(rawMerchant: string): string {
-    // Remove common prefixes/suffixes and clean up merchant names
-    return rawMerchant
-      .replace(/^(INTERAC e-Transfer|PURCHASE|PAYMENT|POS|ATM)\s*/i, "")
-      .replace(/\s*(TORONTO|ONTARIO|ON|CANADA|CA|USA|US)$/i, "")
-      .replace(/\s*#\d+.*$/, "") // Remove reference numbers
-      .replace(/\s+/g, " ")
-      .trim()
-      .toUpperCase();
-  }
-
-  private static extractAmexStatementPeriod(text: string): string | undefined {
-    const periodPattern =
-      /statement period:?\s*(\d{1,2}\/\d{1,2}\/\d{2,4})\s*-\s*(\d{1,2}\/\d{1,2}\/\d{2,4})/i;
-    const match = text.match(periodPattern);
-    return match ? `${match[1]} - ${match[2]}` : undefined;
-  }
-
-  private static extractCibcStatementPeriod(text: string): string | undefined {
-    const periodPattern =
-      /statement period:?\s*(\d{4}-\d{2}-\d{2})\s*to\s*(\d{4}-\d{2}-\d{2})/i;
-    const match = text.match(periodPattern);
-    return match ? `${match[1]} to ${match[2]}` : undefined;
   }
 }
