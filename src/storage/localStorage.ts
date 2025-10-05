@@ -153,20 +153,22 @@ export class LocalStorageRepository implements StorageRepository {
     return data.transactions || [];
   }
 
-  async saveTransaction(transaction: Transaction): Promise<Transaction> {
+  async saveTransactions(transactions: Transaction[]): Promise<Transaction[]> {
     const data = await this.loadData();
-    const existingIndex = data.transactions.findIndex(
-      t => t.id === transaction.id
-    );
+    transactions.forEach(transaction => {
+      const existingIndex = data.transactions.findIndex(
+        t => t.id === transaction.id
+      );
 
-    if (existingIndex >= 0) {
-      data.transactions[existingIndex] = transaction;
-    } else {
-      data.transactions.push(transaction);
-    }
+      if (existingIndex >= 0) {
+        data.transactions[existingIndex] = transaction;
+      } else {
+        data.transactions.push(transaction);
+      }
+    });
 
     await this.saveData(data);
-    return transaction;
+    return transactions;
   }
 
   async updateTransaction(
@@ -198,6 +200,8 @@ export class LocalStorageRepository implements StorageRepository {
   async deleteAllTransactions(): Promise<void> {
     const data = await this.loadData();
     data.transactions = [];
+    console.log("Deleting all transactions");
+    console.log(data);
     await this.saveData(data);
   }
 

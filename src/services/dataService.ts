@@ -73,14 +73,14 @@ class DataService {
     return this.repository.getTransactions();
   }
 
-  async createTransaction(
-    transactionData: Omit<Transaction, "id">
-  ): Promise<Transaction> {
-    const transaction: Transaction = {
-      ...transactionData,
+  async createTransactions(
+    transactionData: Omit<Transaction, "id">[]
+  ): Promise<Transaction[]> {
+    const transactions = transactionData.map(data => ({
+      ...data,
       id: generateId(),
-    };
-    return this.repository.saveTransaction(transaction);
+    }));
+    return this.repository.saveTransactions(transactions);
   }
 
   async updateTransaction(

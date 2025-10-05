@@ -17,7 +17,7 @@ export interface StorageRepository {
 
   // Transactions
   getTransactions(): Promise<Transaction[]>;
-  saveTransaction(transaction: Transaction): Promise<Transaction>;
+  saveTransactions(transactions: Transaction[]): Promise<Transaction[]>;
   updateTransaction(
     id: string,
     transaction: Partial<Transaction>

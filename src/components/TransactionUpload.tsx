@@ -1,9 +1,6 @@
 import { useState, useRef } from "react";
 import { PdfParser } from "../services/pdfParser";
-import { DeduplicationService } from "../services/deduplicationService";
-import { CategorizationService } from "../services/categorizationService";
 import { useTransactions } from "../hooks/useTransactions";
-import { useCategories } from "../hooks/useCategories";
 import type { ParsedTransaction, Transaction } from "../types";
 
 interface TransactionUploadProps {
@@ -11,40 +8,27 @@ interface TransactionUploadProps {
   onClose: () => void;
 }
 
-interface UploadResult {
-  fileName: string;
-  totalParsed: number;
-  duplicatesFound: number;
-  newTransactions: number;
+const initialUploadResults: {
+  transactions: ParsedTransaction[];
   errors: string[];
-  accountInfo?: {
-    accountType: string;
-    lastFour?: string;
-    statementPeriod?: string;
-  };
-}
+} = { transactions: [], errors: [] };
 
 export default function TransactionUpload({
   isOpen,
   onClose,
 }: TransactionUploadProps) {
   const [uploading, setUploading] = useState(false);
-  const [uploadResults, setUploadResults] = useState<UploadResult[]>([]);
-  const [pendingTransactions, setPendingTransactions] = useState<
-    Array<{
-      transaction: ParsedTransaction;
-      isDuplicate: boolean;
-      duplicateOf?: string;
-      confidence: number;
-      suggestedCategoryId?: string;
-      categoryConfidence?: number;
-    }>
-  >([]);
+  const [uploadResults, setUploadResults] = useState<{
+    transactions: ParsedTransaction[];
+    errors: string[];
+  }>(initialUploadResults);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [fileNames, setFileNames] = useState<string[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { transactions, createMultipleTransactions } = useTransactions();
-  const { categories } = useCategories();
+  const { transactions, createTransactions } = useTransactions();
+
+  console.log("in component", transactions);
 
   const processFiles = async (files: FileList | File[]) => {
     const pdfFiles = Array.from(files).filter(
@@ -57,19 +41,8 @@ export default function TransactionUpload({
     }
 
     setUploading(true);
-    setUploadResults([]);
-    setPendingTransactions([]);
-
-    const results: UploadResult[] = [];
-    const allPendingTransactions: Array<{
-      transaction: ParsedTransaction;
-      isDuplicate: boolean;
-      duplicateOf?: string;
-      confidence: number;
-      suggestedCategoryId?: string;
-      categoryConfidence?: number;
-    }> = [];
-
+    setFileNames(pdfFiles.map(file => file.name));
+    setUploadResults(initialUploadResults);
     for (const file of pdfFiles) {
       try {
         // Parse PDF
@@ -82,77 +55,21 @@ export default function TransactionUpload({
           );
         }
 
-        // Check for duplicates
-        const deduplicationResults = DeduplicationService.batchCheckDuplicates(
-          parseResult.transactions,
-          transactions
-        );
-
-        // Categorize transactions
-        const categorizationResults =
-          CategorizationService.batchCategorizeTransactions(
-            parseResult.transactions,
-            categories
-          );
-
-        // Process results
-        const newTransactions: ParsedTransaction[] = [];
-        const filePendingTransactions: typeof allPendingTransactions = [];
-
-        deduplicationResults.forEach((result, index) => {
-          const categorization = categorizationResults[index]?.categorization;
-
-          if (
-            result.deduplication.isLikelyDuplicate &&
-            result.deduplication.confidence > 0.8
-          ) {
-            filePendingTransactions.push({
-              transaction: result.transaction,
-              isDuplicate: true,
-              duplicateOf: result.deduplication.duplicateOf,
-              confidence: result.deduplication.confidence,
-              suggestedCategoryId: categorization?.categoryId,
-              categoryConfidence: categorization?.confidence,
-            });
-          } else {
-            newTransactions.push(result.transaction);
-            filePendingTransactions.push({
-              transaction: result.transaction,
-              isDuplicate: false,
-              confidence: result.deduplication.confidence,
-              suggestedCategoryId: categorization?.categoryId,
-              categoryConfidence: categorization?.confidence,
-            });
-          }
-        });
-
-        allPendingTransactions.push(...filePendingTransactions);
-
-        const result: UploadResult = {
-          fileName: file.name,
-          totalParsed: parseResult.transactions.length,
-          duplicatesFound: filePendingTransactions.filter(d => d.isDuplicate)
-            .length,
-          newTransactions: newTransactions.length,
+        setUploadResults(prev => ({
+          ...prev,
+          transactions: parseResult.transactions,
           errors: parseResult.errors,
-          accountInfo: parseResult.accountInfo,
-        };
-
-        results.push(result);
+        }));
       } catch (error) {
         console.error(`Upload failed for ${file.name}:`, error);
-        results.push({
-          fileName: file.name,
-          totalParsed: 0,
-          duplicatesFound: 0,
-          newTransactions: 0,
+        setUploadResults(prev => ({
+          ...prev,
+          transactions: [],
           errors: [`Failed to process file: ${error}`],
-        });
+        }));
       }
     }
 
-    setPendingTransactions(allPendingTransactions);
-    setUploadResults(results);
     setUploading(false);
   };
 
@@ -181,33 +98,21 @@ export default function TransactionUpload({
   };
 
   const handleConfirmImport = async () => {
-    const transactionsToImport = pendingTransactions
-      .filter(pt => !pt.isDuplicate)
-      .map(pt => {
-        const transaction: Omit<Transaction, "id" | "createdAt" | "updatedAt"> =
-          {
-            date: pt.transaction.date,
-            merchant: pt.transaction.merchant,
-            amount: pt.transaction.amount,
-            originalDescription: pt.transaction.description,
-            accountType: pt.transaction.accountType,
-            description: pt.transaction.description,
-            confidence: pt.transaction.confidence,
-            categoryId: pt.suggestedCategoryId,
-          };
-        return transaction;
-      });
-
-    if (transactionsToImport.length === 0) {
+    if (uploadResults.transactions.length === 0) {
       alert("No new transactions to import");
       return;
     }
 
     setUploading(true);
     try {
-      await createMultipleTransactions(transactionsToImport);
+      await createTransactions(
+        uploadResults.transactions as Omit<
+          Transaction,
+          "id" | "createdAt" | "updatedAt"
+        >[]
+      );
       alert(
-        `Successfully imported ${transactionsToImport.length} transactions!`
+        `Successfully imported ${uploadResults.transactions.length} transactions!`
       );
       onClose();
     } catch (error) {
@@ -215,24 +120,27 @@ export default function TransactionUpload({
       alert("Failed to import transactions. Please try again.");
     } finally {
       setUploading(false);
+      setUploadResults(initialUploadResults);
+      setFileNames([]);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
   const handleClose = () => {
-    setUploadResults([]);
-    setPendingTransactions([]);
+    setUploadResults(initialUploadResults);
+    setFileNames([]);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
     onClose();
   };
 
-  const totalNewTransactions = uploadResults.reduce(
-    (sum, result) => sum + result.newTransactions,
-    0
-  );
-
   if (!isOpen) return null;
+
+  const accountType = uploadResults.transactions[0]?.accountType;
+  const totalTransactionCount = uploadResults.transactions.length;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -249,8 +157,12 @@ export default function TransactionUpload({
           </div>
         </div>
 
+        {transactions.map(tx => (
+          <div key={tx.id}>{tx.merchant}</div>
+        ))}
+
         <div className="p-6 overflow-y-auto">
-          {uploadResults.length === 0 ? (
+          {totalTransactionCount === 0 ? (
             <div className="space-y-4">
               <p className="text-gray-600">
                 Upload AMEX or CIBC PDF statements to automatically import
@@ -302,10 +214,10 @@ export default function TransactionUpload({
               {/* Upload Summary */}
               <div className="bg-gray-50 rounded-lg p-4">
                 <h3 className="font-medium text-gray-900 mb-3">
-                  Upload Summary ({uploadResults.length} file
-                  {uploadResults.length !== 1 ? "s" : ""})
+                  Upload Summary ({fileNames.length} file
+                  {fileNames.length !== 1 ? "s" : ""})
                 </h3>
-                {uploadResults.map((result, index) => (
+                {fileNames.map((fileName, index) => (
                   <div
                     key={index}
                     className={`${
@@ -314,132 +226,80 @@ export default function TransactionUpload({
                   >
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div className="col-span-2">
-                        <span className="text-gray-500">File:</span>
-                        <span className="ml-2 font-medium">
-                          {result.fileName}
+                        <span className="text-gray-500 text-ellipsis">
+                          File:
                         </span>
-                        {result.accountInfo?.accountType && (
+                        <span className="ml-2 font-medium">
+                          {fileNames.map(fileName => fileName).join(", ")}
+                        </span>
+                        {accountType && (
                           <span className="ml-2 text-xs text-gray-500 uppercase">
-                            ({result.accountInfo.accountType})
+                            ({accountType})
                           </span>
                         )}
                       </div>
                       <div>
                         <span className="text-gray-500">Total Parsed:</span>
                         <span className="ml-2 font-medium">
-                          {result.totalParsed}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Duplicates:</span>
-                        <span className="ml-2 font-medium text-yellow-600">
-                          {result.duplicatesFound}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">New Transactions:</span>
-                        <span className="ml-2 font-medium text-green-600">
-                          {result.newTransactions}
+                          {totalTransactionCount}
                         </span>
                       </div>
                     </div>
                   </div>
                 ))}
-                <div className="mt-4 pt-4 border-t border-gray-300">
-                  <div className="text-sm font-medium">
-                    <span className="text-gray-700">
-                      Total New Transactions:{" "}
-                    </span>
-                    <span className="text-green-600">
-                      {totalNewTransactions}
-                    </span>
-                  </div>
-                </div>
               </div>
 
               {/* Errors */}
-              {uploadResults.some(result => result.errors.length > 0) && (
+              {uploadResults.errors.length > 0 && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                   <h3 className="font-medium text-red-800 mb-2">Warnings</h3>
-                  {uploadResults.map(
-                    (result, index) =>
-                      result.errors.length > 0 && (
-                        <div key={index} className={index > 0 ? "mt-3" : ""}>
-                          <div className="text-sm font-medium text-red-800">
-                            {result.fileName}:
-                          </div>
-                          <ul className="text-sm text-red-700 space-y-1 mt-1">
-                            {result.errors.map((error, errorIndex) => (
-                              <li key={errorIndex}>• {error}</li>
-                            ))}
-                          </ul>
-                        </div>
+                  {uploadResults.errors.map((error, index) => {
+                    return (
+                      error.length > 0 && (
+                        <ul className="text-sm text-red-700 space-y-1 mt-1">
+                          <li key={index}>• {error}</li>
+                        </ul>
                       )
-                  )}
+                    );
+                  })}
                 </div>
               )}
 
               {/* Transaction Preview */}
-              {pendingTransactions.length > 0 && (
+              {totalTransactionCount > 0 && (
                 <div>
                   <h3 className="font-medium text-gray-900 mb-3">
                     Transaction Preview
                   </h3>
                   <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-lg">
-                    {pendingTransactions.slice(0, 10).map((pt, index) => (
+                    {uploadResults.transactions.map((transaction, index) => (
                       <div
                         key={index}
-                        className={`p-3 border-b border-gray-100 last:border-b-0 ${
-                          pt.isDuplicate ? "bg-yellow-50" : "bg-white"
-                        }`}
+                        className={`p-3 border-b border-gray-100 last:border-b-0 bg-white`}
                       >
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
                             <div className="font-medium text-gray-900">
-                              {pt.transaction.merchant}
+                              {transaction.merchant}
                             </div>
                             <div className="text-sm text-gray-500">
-                              {pt.transaction.date} •{" "}
-                              {pt.transaction.description}
+                              {transaction.date} • {transaction.description}
                             </div>
                           </div>
                           <div className="text-right">
                             <div
                               className={`font-medium ${
-                                pt.transaction.amount < 0
+                                transaction.amount < 0
                                   ? "text-red-600"
                                   : "text-green-600"
                               }`}
                             >
-                              ${Math.abs(pt.transaction.amount).toFixed(2)}
+                              ${Math.abs(transaction.amount).toFixed(2)}
                             </div>
-                            {pt.isDuplicate && (
-                              <div className="text-xs text-yellow-600">
-                                Duplicate
-                              </div>
-                            )}
-                            {pt.suggestedCategoryId && !pt.isDuplicate && (
-                              <div className="text-xs text-blue-600">
-                                {
-                                  categories.find(
-                                    c => c.id === pt.suggestedCategoryId
-                                  )?.name
-                                }
-                                {pt.categoryConfidence &&
-                                  pt.categoryConfidence > 0.8 &&
-                                  " ✓"}
-                              </div>
-                            )}
                           </div>
                         </div>
                       </div>
                     ))}
-                    {pendingTransactions.length > 10 && (
-                      <div className="p-3 text-center text-sm text-gray-500">
-                        ... and {pendingTransactions.length - 10} more
-                        transactions
-                      </div>
-                    )}
                   </div>
                 </div>
               )}
@@ -453,7 +313,7 @@ export default function TransactionUpload({
                 >
                   Cancel
                 </button>
-                {totalNewTransactions > 0 && (
+                {totalTransactionCount > 0 && (
                   <button
                     onClick={handleConfirmImport}
                     className="btn-primary"
@@ -461,7 +321,7 @@ export default function TransactionUpload({
                   >
                     {uploading
                       ? "Importing..."
-                      : `Import ${totalNewTransactions} Transactions`}
+                      : `Import ${totalTransactionCount} Transactions`}
                   </button>
                 )}
               </div>

@@ -12,19 +12,11 @@ export interface Budget {
   availableToBudget: number;
 }
 
-export interface Transaction {
+export interface Transaction extends ParsedTransaction {
   id: string;
-  date: string; // YYYY-MM-DD format
-  merchant: string;
-  amount: number; // Negative for expenses, positive for income
+  budgetId: string; // associated budget
   categoryId?: string;
-  description?: string;
-  accountType: string; // e.g., "amex", "cibc", "td", "rbc", "manual"
-  accountId?: string;
-  originalDescription: string; // Raw description from statement
-  isTransfer?: boolean; // For credit card payments, etc.
-  duplicateOf?: string; // ID of transaction this might duplicate
-  confidence?: number; // AI confidence in categorization (0-1)
+  transactionHash: string; // used to deduplicate transactions
   createdAt: string;
   updatedAt: string;
 }
@@ -34,9 +26,7 @@ export interface ParsedTransaction {
   merchant: string;
   amount: number;
   description: string;
-  accountType: string;
-  confidence: number;
-  metadata?: Record<string, string>;
+  accountType: string; // e.g., "amex", "cibc", "td", "rbc", "manual"
 }
 
 export interface Account {

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { dataService } from "../services/dataService";
 import type { Transaction } from "../types";
+import { generateTransactionHash } from "../util";
 
 export const useTransactions = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -22,43 +23,20 @@ export const useTransactions = () => {
     }
   }, []);
 
-  const createTransaction = useCallback(
-    async (
-      transactionData: Omit<Transaction, "id" | "createdAt" | "updatedAt">
-    ) => {
-      try {
-        const newTransaction = await dataService.createTransaction({
-          ...transactionData,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        });
-        setTransactions(prev => [...prev, newTransaction]);
-        return newTransaction;
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to create transaction"
-        );
-        throw err;
-      }
-    },
-    []
-  );
-
-  const createMultipleTransactions = useCallback(
+  const createTransactions = useCallback(
     async (
       transactionsData: Array<
         Omit<Transaction, "id" | "createdAt" | "updatedAt">
       >
     ) => {
       try {
-        const newTransactions = await Promise.all(
-          transactionsData.map(data =>
-            dataService.createTransaction({
-              ...data,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            })
-          )
+        const newTransactions = await dataService.createTransactions(
+          transactionsData.map(tx => ({
+            ...tx,
+            transactionHash: generateTransactionHash(tx),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          }))
         );
         setTransactions(prev => [...prev, ...newTransactions]);
         return newTransactions;
@@ -146,8 +124,7 @@ export const useTransactions = () => {
     transactions,
     loading,
     error,
-    createTransaction,
-    createMultipleTransactions,
+    createTransactions,
     updateTransaction,
     deleteTransaction,
     deleteAllTransactions,

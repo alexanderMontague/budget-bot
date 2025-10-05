@@ -105,7 +105,7 @@ export class DatabaseRepository implements StorageRepository {
     return response.json();
   }
 
-  async saveTransaction(transaction: Transaction): Promise<Transaction> {
+  async saveTransactions(transaction: Transaction[]): Promise<Transaction[]> {
     const response = await fetch(`${this.apiBaseUrl}/transactions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
