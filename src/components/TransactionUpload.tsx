@@ -26,9 +26,7 @@ export default function TransactionUpload({
   const [fileNames, setFileNames] = useState<string[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { transactions, createTransactions } = useTransactions();
-
-  console.log("in component", transactions);
+  const { createTransactions } = useTransactions();
 
   const processFiles = async (files: FileList | File[]) => {
     const pdfFiles = Array.from(files).filter(
@@ -157,10 +155,6 @@ export default function TransactionUpload({
           </div>
         </div>
 
-        {transactions.map(tx => (
-          <div key={tx.id}>{tx.merchant}</div>
-        ))}
-
         <div className="p-6 overflow-y-auto">
           {totalTransactionCount === 0 ? (
             <div className="space-y-4">
@@ -229,9 +223,7 @@ export default function TransactionUpload({
                         <span className="text-gray-500 text-ellipsis">
                           File:
                         </span>
-                        <span className="ml-2 font-medium">
-                          {fileNames.map(fileName => fileName).join(", ")}
-                        </span>
+                        <span className="ml-2 font-medium">{fileName}</span>
                         {accountType && (
                           <span className="ml-2 text-xs text-gray-500 uppercase">
                             ({accountType})

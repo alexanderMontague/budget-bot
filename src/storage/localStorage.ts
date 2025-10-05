@@ -141,7 +141,6 @@ export class LocalStorageRepository implements StorageRepository {
   }
 
   async deleteAllBudgets(): Promise<void> {
-    console.log("Deleting all budgets");
     const data = await this.loadData();
     data.budgets = [];
     await this.saveData(data);
@@ -200,8 +199,6 @@ export class LocalStorageRepository implements StorageRepository {
   async deleteAllTransactions(): Promise<void> {
     const data = await this.loadData();
     data.transactions = [];
-    console.log("Deleting all transactions");
-    console.log(data);
     await this.saveData(data);
   }
 

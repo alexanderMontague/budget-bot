@@ -1,9 +1,39 @@
-import { useState, useEffect, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import type { ReactNode } from "react";
 import { dataService } from "../services/dataService";
 import type { Transaction } from "../types";
 import { generateTransactionHash } from "../util";
 
-export const useTransactions = () => {
+interface TransactionsContextType {
+  transactions: Transaction[];
+  loading: boolean;
+  error: string | null;
+  createTransactions: (
+    transactionsData: Array<Omit<Transaction, "id" | "createdAt" | "updatedAt">>
+  ) => Promise<Transaction[]>;
+  updateTransaction: (
+    id: string,
+    updates: Partial<Transaction>
+  ) => Promise<Transaction>;
+  deleteTransaction: (id: string) => Promise<void>;
+  deleteAllTransactions: () => Promise<void>;
+  loadTransactions: () => Promise<void>;
+  getTransactionsByMonth: (month: string) => Transaction[];
+  getTransactionsByCategory: (categoryId: string) => Transaction[];
+  getTransactionsByAccount: (accountType: string) => Transaction[];
+}
+
+const TransactionsContext = createContext<TransactionsContextType | undefined>(
+  undefined
+);
+
+export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -120,17 +150,34 @@ export const useTransactions = () => {
     loadTransactions();
   }, [loadTransactions]);
 
-  return {
-    transactions,
-    loading,
-    error,
-    createTransactions,
-    updateTransaction,
-    deleteTransaction,
-    deleteAllTransactions,
-    loadTransactions,
-    getTransactionsByMonth,
-    getTransactionsByCategory,
-    getTransactionsByAccount,
-  };
+  return (
+    <TransactionsContext.Provider
+      value={{
+        transactions,
+        loading,
+        error,
+        createTransactions,
+        updateTransaction,
+        deleteTransaction,
+        deleteAllTransactions,
+        loadTransactions,
+        getTransactionsByMonth,
+        getTransactionsByCategory,
+        getTransactionsByAccount,
+      }}
+    >
+      {children}
+    </TransactionsContext.Provider>
+  );
+};
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const useTransactions = () => {
+  const context = useContext(TransactionsContext);
+  if (context === undefined) {
+    throw new Error(
+      "useTransactions must be used within a TransactionsProvider"
+    );
+  }
+  return context;
 };

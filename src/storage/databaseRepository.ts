@@ -165,16 +165,3 @@ export class DatabaseRepository implements StorageRepository {
     if (!response.ok) throw new Error("Failed to import data");
   }
 }
-
-/*
-Example usage:
-
-// To switch from localStorage to database:
-import { DatabaseRepository } from './storage/databaseRepository';
-import { dataService } from './services/dataService';
-
-const dbRepository = new DatabaseRepository({
-  apiBaseUrl: 'https://your-api.com/api'
-});
-dataService.setRepository(dbRepository);
-*/
