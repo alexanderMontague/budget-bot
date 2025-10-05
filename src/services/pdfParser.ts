@@ -105,28 +105,36 @@ export class PdfParser {
   ): PdfParseResult {
     const transactions: ParsedTransaction[] = [];
 
+    const amexTransactions = text
+      .split("  Date   Description   Amount  ")
+      .slice(1)
+      .flatMap(it => it.split("  This is not a billing Statement.")[0])
+      .flatMap(it =>
+        it.split(/(?<=\$\d+\.\d{2})\s(?=\d{1,2}\s[A-Z][a-z]{2}\.\s\d{4})/)
+      )
+      .map(it =>
+        it
+          .split("   ")
+          .map(it =>
+            it
+              .replace("  Merchant:", "")
+              .replace("  Date Processed:", "")
+              .replace("  Foreign Spend Amount:", "")
+          )
+          .filter(
+            it => !it.includes("Commission") || !it.includes("Exchange Rate")
+          )
+      )
+      .map(it => [...it, it[it.length - 1].split(" $")[1]])
+      .filter(it => !it[1].includes("PAYMENT RECEIVED"))
+      .map(it => ({
+        date: it[0],
+        description: it[1],
+        merchant: it[2],
+        amount: Number(it[it.length - 1]),
+      }));
+
     debugger;
-
-    const pageTransactions = text
-      .split("Date   Description   Amount  ")
-      .slice(1);
-
-    let i = 0;
-    while (i < 5) {
-      try {
-        i++;
-        transactions.push({
-          date: "",
-          merchant: "",
-          amount: 0,
-          description: "",
-          accountType: "amex",
-          confidence: 0,
-        });
-      } catch (error) {
-        errors.push(`Failed to parse AMEX transaction: ${error}`);
-      }
-    }
 
     return {
       transactions,
@@ -169,5 +177,21 @@ export class PdfParser {
         statementPeriod: this.extractCibcStatementPeriod(text),
       },
     };
+  }
+
+  private static extractAmexStatementPeriod(text: string): string {
+    // Look for date range pattern like "28 Aug. 2025 - 22 Sep. 2025"
+    const periodMatch = text.match(
+      /(\d{1,2}\s+\w{3}\.\s+\d{4})\s*-\s*(\d{1,2}\s+\w{3}\.\s+\d{4})/
+    );
+    return periodMatch ? `${periodMatch[1]} - ${periodMatch[2]}` : "";
+  }
+
+  private static extractCibcStatementPeriod(text: string): string {
+    // CIBC might have different date format - adjust as needed based on actual CIBC statements
+    const periodMatch = text.match(
+      /(\d{1,2}\s+\w{3}\.\s+\d{4})\s*-\s*(\d{1,2}\s+\w{3}\.\s+\d{4})/
+    );
+    return periodMatch ? `${periodMatch[1]} - ${periodMatch[2]}` : "";
   }
 }

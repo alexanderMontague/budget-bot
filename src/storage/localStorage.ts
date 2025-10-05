@@ -145,7 +145,6 @@ export class LocalStorageRepository implements StorageRepository {
     const data = await this.loadData();
     data.budgets = [];
     await this.saveData(data);
-    console.log("Budgets deleted", data, await this.getBudgets());
   }
 
   // Transactions

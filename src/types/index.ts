@@ -29,6 +29,16 @@ export interface Transaction {
   updatedAt: string;
 }
 
+export interface ParsedTransaction {
+  date: string; // YYYY-MM-DD format
+  merchant: string;
+  amount: number;
+  description: string;
+  accountType: string;
+  confidence: number;
+  metadata?: Record<string, string>;
+}
+
 export interface Account {
   id: string;
   name: string;
@@ -51,15 +61,6 @@ export interface MonthlyReport {
   totalExpenses: number;
   categoryBreakdown: CategoryProgress[];
   savingsRate: number;
-}
-
-export interface ParsedTransaction {
-  date: string;
-  merchant: string;
-  amount: number;
-  description: string;
-  accountType: string;
-  confidence: number;
 }
 
 export interface DeduplicationResult {
