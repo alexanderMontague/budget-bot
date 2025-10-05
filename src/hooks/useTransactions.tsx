@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
 import { dataService } from "../services/dataService";
 import type { Transaction } from "../types";
 import { generateTransactionHash } from "../util";
+import { useBudgets } from "./useBudgets";
 
 interface TransactionsContextType {
   transactions: Transaction[];
@@ -37,6 +38,7 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { budgets } = useBudgets();
 
   const loadTransactions = useCallback(async () => {
     try {
@@ -60,14 +62,25 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
       >
     ) => {
       try {
-        const newTransactions = await dataService.createTransactions(
-          transactionsData.map(tx => ({
-            ...tx,
-            transactionHash: generateTransactionHash(tx),
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          }))
+        const existingHashes = new Set(
+          transactions.map(t => t.transactionHash)
         );
+
+        const transactionsWithHash = transactionsData.map(tx => ({
+          ...tx,
+          transactionHash: generateTransactionHash(tx),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }));
+
+        const filteredTransactions = transactionsWithHash.filter(
+          tx => !existingHashes.has(tx.transactionHash)
+        );
+
+        const newTransactions = await dataService.createTransactions(
+          filteredTransactions
+        );
+
         setTransactions(prev => [...prev, ...newTransactions]);
         return newTransactions;
       } catch (err) {
@@ -77,7 +90,7 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
         throw err;
       }
     },
-    []
+    [transactions, budgets]
   );
 
   const updateTransaction = useCallback(
