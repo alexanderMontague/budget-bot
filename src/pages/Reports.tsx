@@ -13,8 +13,6 @@ export default function Reports() {
   const [selectedMonthAndYear, setSelectedMonthAndYear] =
     useState(currentMonthAndYear);
 
-  console.log(selectedMonthAndYear);
-
   const currentBudget = getCurrentBudget();
   const currentMonthTransactions =
     getTransactionsByMonthAndYear(selectedMonthAndYear);
@@ -69,11 +67,16 @@ export default function Reports() {
             value={selectedMonthAndYear}
             onChange={e => setSelectedMonthAndYear(e.target.value)}
           >
-            {budgets.map(budget => (
-              <option key={budget.id} value={budget.month}>
-                {formatDateToHumanReadable(budget.month)}
-              </option>
-            ))}
+            {budgets
+              .sort(
+                (a, b) =>
+                  new Date(a.month).getTime() - new Date(b.month).getTime()
+              )
+              .map(budget => (
+                <option key={budget.id} value={budget.month}>
+                  {formatDateToHumanReadable(budget.month)}
+                </option>
+              ))}
           </select>
           <button className="btn-secondary">Export Data</button>
         </div>
@@ -201,7 +204,7 @@ export default function Reports() {
         </div>
 
         {/* Transactions */}
-        <div className="card">
+        <div className="card overflow-y-scroll max-h-[60vh]">
           <h2 className="heading-4 mb-4">Transactions</h2>
           <div className="space-y-3">
             {currentMonthTransactions.length === 0 ? (
@@ -219,7 +222,6 @@ export default function Reports() {
                     (a, b) =>
                       new Date(b.date).getTime() - new Date(a.date).getTime()
                   )
-                  .slice(0, 10)
                   .map(transaction => {
                     const category = categories.find(
                       c => c.id === transaction.categoryId
@@ -264,14 +266,6 @@ export default function Reports() {
                       </div>
                     );
                   })}
-                {currentMonthTransactions.length > 10 && (
-                  <div className="text-center pt-3">
-                    <p className="text-sm text-gray-500">
-                      ... and {currentMonthTransactions.length - 10} more
-                      transactions
-                    </p>
-                  </div>
-                )}
               </>
             )}
           </div>
