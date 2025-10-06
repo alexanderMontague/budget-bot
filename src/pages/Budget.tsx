@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { useCategories } from "../hooks/useCategories";
 import { useBudgets } from "../hooks/useBudgets";
+import { useCategories } from "../hooks/useCategories";
 import { useDate } from "../hooks/useDate";
 
 export default function Budget() {

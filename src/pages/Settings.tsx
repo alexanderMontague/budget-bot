@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useCategories } from "../hooks/useCategories";
-import { useBudgets } from "../hooks/useBudgets";
 import { useTransactions } from "../hooks/useTransactions";
+import { useBudgets } from "../hooks/useBudgets";
+import { useCategories } from "../hooks/useCategories";
 import { dataService } from "../services/dataService";
 import AddCategoryModal from "../components/AddCategoryModal";
 import TransactionUpload from "../components/TransactionUpload";

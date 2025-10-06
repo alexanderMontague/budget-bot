@@ -49,3 +49,9 @@ export const formatDateToHumanReadable = (date: string): string => {
     day: "numeric",
   });
 };
+
+export const getTransactionBudgetMonth = (
+  tx: Pick<Transaction, "date">
+): string => {
+  return `${tx.date.split("-")[0]}-${tx.date.split("-")[1]}`;
+};

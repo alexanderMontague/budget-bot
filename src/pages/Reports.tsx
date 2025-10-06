@@ -1,19 +1,23 @@
-import { useCategories } from "../hooks/useCategories";
-import { useBudgets } from "../hooks/useBudgets";
 import { useTransactions } from "../hooks/useTransactions";
+import { useBudgets } from "../hooks/useBudgets";
+import { useCategories } from "../hooks/useCategories";
 import { useDate } from "../hooks/useDate";
 import { formatDateToHumanReadable } from "../util";
+import { useState } from "react";
 
 export default function Reports() {
   const { categories } = useCategories();
-  const { budgets, getCurrentBudget } = useBudgets();
-  const { transactions } = useTransactions();
+  const { budgets, getCurrentBudget, getBudgetById } = useBudgets();
+  const { transactions, getTransactionsByMonthAndYear } = useTransactions();
   const { currentMonthAndYear } = useDate();
+  const [selectedMonthAndYear, setSelectedMonthAndYear] =
+    useState(currentMonthAndYear);
+
+  console.log(selectedMonthAndYear);
 
   const currentBudget = getCurrentBudget();
-  const currentMonthTransactions = transactions.filter(t =>
-    t.date.startsWith(currentMonthAndYear)
-  );
+  const currentMonthTransactions =
+    getTransactionsByMonthAndYear(selectedMonthAndYear);
 
   // Calculate spending by category for current month
   const categorySpending = categories
@@ -60,7 +64,11 @@ export default function Reports() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="heading-2">Reports & Analytics</h1>
         <div className="flex flex-col sm:flex-row gap-3 sm:space-x-3 sm:gap-0">
-          <select className="select text-sm">
+          <select
+            className="select text-sm"
+            value={selectedMonthAndYear}
+            onChange={e => setSelectedMonthAndYear(e.target.value)}
+          >
             {budgets.map(budget => (
               <option key={budget.id} value={budget.month}>
                 {formatDateToHumanReadable(budget.month)}

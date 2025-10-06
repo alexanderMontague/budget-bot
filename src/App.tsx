@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { CategoriesProvider } from "./hooks/useCategories";
-import { BudgetsProvider } from "./hooks/useBudgets";
-import { TransactionsProvider } from "./hooks/useTransactions";
+import { CategoriesProvider } from "./contexts/Categories";
+import { BudgetsProvider } from "./contexts/Budgets";
+import { TransactionsProvider } from "./contexts/Transactions";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import Budget from "./pages/Budget";
