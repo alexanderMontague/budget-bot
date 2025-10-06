@@ -5,25 +5,53 @@ import { useCategories } from "../hooks/useCategories";
 import { dataService } from "../services/dataService";
 import AddCategoryModal from "../components/AddCategoryModal";
 import TransactionUpload from "../components/TransactionUpload";
+import type { Category } from "../types";
 
 export default function Settings() {
-  const { categories, createCategory, deleteCategory, deleteAllCategories } =
-    useCategories();
+  const {
+    categories,
+    createCategory,
+    updateCategory,
+    deleteCategory,
+    deleteAllCategories,
+  } = useCategories();
   const { deleteAllBudgets } = useBudgets();
   const { deleteAllTransactions } = useTransactions();
-  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | undefined>(
+    undefined
+  );
   const [showTransactionUpload, setShowTransactionUpload] = useState(false);
 
-  const handleAddCategory = async (categoryData: {
+  const handleSaveCategory = async (categoryData: {
     name: string;
     monthlyBudget: number;
     color: string;
   }) => {
     try {
-      await createCategory(categoryData);
+      if (editingCategory) {
+        await updateCategory(editingCategory.id, categoryData);
+      } else {
+        await createCategory(categoryData);
+      }
+      setEditingCategory(undefined);
     } catch {
-      alert("Failed to add category. Please try again.");
+      alert(
+        `Failed to ${
+          editingCategory ? "update" : "add"
+        } category. Please try again.`
+      );
     }
+  };
+
+  const handleEditCategory = (category: Category) => {
+    setEditingCategory(category);
+    setShowCategoryModal(true);
+  };
+
+  const handleCloseCategoryModal = () => {
+    setShowCategoryModal(false);
+    setEditingCategory(undefined);
   };
 
   const handleDeleteCategory = async (categoryId: string) => {
@@ -52,7 +80,7 @@ export default function Settings() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
           <h2 className="heading-4">Categories</h2>
           <button
-            onClick={() => setShowAddCategory(true)}
+            onClick={() => setShowCategoryModal(true)}
             className="btn-primary"
           >
             + Add Category
@@ -81,7 +109,10 @@ export default function Settings() {
                 </div>
               </div>
               <div className="flex space-x-2 flex-shrink-0">
-                <button className="text-primary-600 hover:text-primary-700 px-2 py-1 text-sm">
+                <button
+                  onClick={() => handleEditCategory(category)}
+                  className="text-primary-600 hover:text-primary-700 px-2 py-1 text-sm"
+                >
                   Edit
                 </button>
                 <button
@@ -195,9 +226,10 @@ export default function Settings() {
       </div>
 
       <AddCategoryModal
-        isOpen={showAddCategory}
-        onClose={() => setShowAddCategory(false)}
-        onSubmit={handleAddCategory}
+        isOpen={showCategoryModal}
+        onClose={handleCloseCategoryModal}
+        onSubmit={handleSaveCategory}
+        category={editingCategory}
       />
 
       <TransactionUpload

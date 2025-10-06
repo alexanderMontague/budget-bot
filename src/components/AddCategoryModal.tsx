@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import type { Category } from "../types";
 
 interface AddCategoryModalProps {
   isOpen: boolean;
@@ -8,6 +9,7 @@ interface AddCategoryModalProps {
     monthlyBudget: number;
     color: string;
   }) => void;
+  category?: Category;
 }
 
 const COLOR_OPTIONS = [
@@ -25,10 +27,23 @@ export default function AddCategoryModal({
   isOpen,
   onClose,
   onSubmit,
+  category,
 }: AddCategoryModalProps) {
   const [name, setName] = useState("");
   const [monthlyBudget, setMonthlyBudget] = useState("");
   const [selectedColor, setSelectedColor] = useState(COLOR_OPTIONS[0]);
+
+  useEffect(() => {
+    if (category) {
+      setName(category.name);
+      setMonthlyBudget(category.monthlyBudget?.toString() || "");
+      setSelectedColor(category.color || COLOR_OPTIONS[0]);
+    } else {
+      setName("");
+      setMonthlyBudget("");
+      setSelectedColor(COLOR_OPTIONS[0]);
+    }
+  }, [category, isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,7 +71,9 @@ export default function AddCategoryModal({
   return (
     <div className="modal-backdrop">
       <div className="modal">
-        <h3 className="heading-4 mb-4">Add Category</h3>
+        <h3 className="heading-4 mb-4">
+          {category ? "Edit Category" : "Add Category"}
+        </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -113,7 +130,7 @@ export default function AddCategoryModal({
               Cancel
             </button>
             <button type="submit" className="flex-1 btn-primary">
-              Add Category
+              {category ? "Update Category" : "Add Category"}
             </button>
           </div>
         </form>
