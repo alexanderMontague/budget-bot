@@ -38,7 +38,7 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { budgets } = useBudgets();
+  const { budgets, createBudget } = useBudgets();
 
   const loadTransactions = useCallback(async () => {
     try {
@@ -66,16 +66,37 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
           transactions.map(t => t.transactionHash)
         );
 
-        const transactionsWithHash = transactionsData.map(tx => ({
-          ...tx,
-          transactionHash: generateTransactionHash(tx),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        }));
+        const transactionsWithHash = await Promise.all(
+          transactionsData.map(async tx => {
+            const budgetMonth = `${tx.date.split("-")[0]}-${
+              tx.date.split("-")[1]
+            }`;
+            let txBudget = budgets.find(b => b.month === budgetMonth);
 
-        const filteredTransactions = transactionsWithHash.filter(
-          tx => !existingHashes.has(tx.transactionHash)
+            if (!txBudget) {
+              console.warn(
+                `Transaction ${tx.description} has no budget. Creating budget for month ${budgetMonth} with default`
+              );
+              txBudget = await createBudget({
+                month: budgetMonth,
+                allocations: {},
+                availableToBudget: 0,
+              });
+            }
+
+            return {
+              ...tx,
+              budgetId: txBudget.id,
+              transactionHash: generateTransactionHash(tx),
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            };
+          })
         );
+
+        const filteredTransactions = transactionsWithHash
+          .filter(tx => !!tx)
+          .filter(tx => !existingHashes.has(tx.transactionHash));
 
         const newTransactions = await dataService.createTransactions(
           filteredTransactions

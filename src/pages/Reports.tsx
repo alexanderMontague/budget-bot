@@ -5,11 +5,11 @@ import { useDate } from "../hooks/useDate";
 
 export default function Reports() {
   const { categories } = useCategories();
-  const { budgets } = useBudgets();
+  const { getCurrentBudget } = useBudgets();
   const { transactions } = useTransactions();
   const { currentMonthAndYear } = useDate();
 
-  const currentBudget = budgets.find(b => b.month === currentMonthAndYear);
+  const currentBudget = getCurrentBudget();
   const currentMonthTransactions = transactions.filter(t =>
     t.date.startsWith(currentMonthAndYear)
   );
@@ -189,9 +189,9 @@ export default function Reports() {
           </div>
         </div>
 
-        {/* Recent Transactions */}
+        {/* Transactions */}
         <div className="card">
-          <h2 className="heading-4 mb-4">Recent Transactions</h2>
+          <h2 className="heading-4 mb-4">Transactions</h2>
           <div className="space-y-3">
             {currentMonthTransactions.length === 0 ? (
               <div className="text-center py-8 text-gray-500">

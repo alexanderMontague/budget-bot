@@ -10,7 +10,7 @@ import { generateId } from "../util";
 
 export const initialCategories: Category[] = [
   { id: generateId(), name: "Groceries", monthlyBudget: 500, color: "#22c55e" },
-  { id: generateId(), name: "Rent", monthlyBudget: 1200, color: "#3b82f6" },
+  { id: generateId(), name: "Mortgage", monthlyBudget: 1200, color: "#3b82f6" },
   { id: generateId(), name: "Utilities", monthlyBudget: 150, color: "#f59e0b" },
   {
     id: generateId(),

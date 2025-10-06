@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { PdfParser } from "../services/pdfParser";
 import { useTransactions } from "../hooks/useTransactions";
 import type { ParsedTransaction, Transaction } from "../types";
+import { useBudgets } from "../hooks/useBudgets";
 
 interface TransactionUploadProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ export default function TransactionUpload({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { createTransactions } = useTransactions();
+  const { budgets } = useBudgets();
 
   const processFiles = async (files: FileList | File[]) => {
     const pdfFiles = Array.from(files).filter(
@@ -136,6 +138,26 @@ export default function TransactionUpload({
   };
 
   if (!isOpen) return null;
+
+  if (!budgets.length) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+          <div className="p-6 border-b border-gray-200">
+            <h2 className="text-lg font-semibold">Import Transactions</h2>
+          </div>
+          <div className="p-6 overflow-y-auto">
+            <p className="text-gray-600">Please create a budget first.</p>
+          </div>
+          <div className="p-6">
+            <button onClick={handleClose} className="btn-primary">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const accountType = uploadResults.transactions[0]?.accountType;
   const totalTransactionCount = uploadResults.transactions.length;
