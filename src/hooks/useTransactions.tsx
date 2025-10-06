@@ -10,6 +10,7 @@ import { dataService } from "../services/dataService";
 import type { Transaction } from "../types";
 import { generateTransactionHash } from "../util";
 import { useBudgets } from "./useBudgets";
+import { useCategories } from "./useCategories";
 
 interface TransactionsContextType {
   transactions: Transaction[];
@@ -39,6 +40,7 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { budgets, createBudget } = useBudgets();
+  const { categories } = useCategories();
 
   const loadTransactions = useCallback(async () => {
     try {
@@ -73,13 +75,18 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
             }`;
             let txBudget = budgets.find(b => b.month === budgetMonth);
 
+            debugger;
+
             if (!txBudget) {
               console.warn(
                 `Transaction ${tx.description} has no budget. Creating budget for month ${budgetMonth} with default`
               );
               txBudget = await createBudget({
                 month: budgetMonth,
-                allocations: {},
+                allocations: categories.reduce((acc, category) => {
+                  acc[category.id] = category.monthlyBudget || 0;
+                  return acc;
+                }, {} as Record<string, number>),
                 availableToBudget: 0,
               });
             }

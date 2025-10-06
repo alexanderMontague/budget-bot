@@ -1,9 +1,30 @@
-import { useState, useEffect, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import type { ReactNode } from "react";
 import { dataService } from "../services/dataService";
 import type { Budget } from "../types";
 import { useDate } from "./useDate";
 
-export const useBudgets = () => {
+interface BudgetsContextType {
+  budgets: Budget[];
+  loading: boolean;
+  error: string | null;
+  createBudget: (budgetData: Omit<Budget, "id">) => Promise<Budget>;
+  updateBudget: (id: string, updates: Partial<Budget>) => Promise<Budget>;
+  deleteBudget: (id: string) => Promise<void>;
+  deleteAllBudgets: () => Promise<void>;
+  loadBudgets: () => Promise<void>;
+  getCurrentBudget: () => Budget | undefined;
+}
+
+const BudgetsContext = createContext<BudgetsContextType | undefined>(undefined);
+
+export const BudgetsProvider = ({ children }: { children: ReactNode }) => {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -80,15 +101,30 @@ export const useBudgets = () => {
     loadBudgets();
   }, [loadBudgets]);
 
-  return {
-    budgets,
-    loading,
-    error,
-    createBudget,
-    updateBudget,
-    deleteBudget,
-    deleteAllBudgets,
-    loadBudgets,
-    getCurrentBudget,
-  };
+  return (
+    <BudgetsContext.Provider
+      value={{
+        budgets,
+        loading,
+        error,
+        createBudget,
+        updateBudget,
+        deleteBudget,
+        deleteAllBudgets,
+        loadBudgets,
+        getCurrentBudget,
+      }}
+    >
+      {children}
+    </BudgetsContext.Provider>
+  );
+};
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const useBudgets = () => {
+  const context = useContext(BudgetsContext);
+  if (context === undefined) {
+    throw new Error("useBudgets must be used within a BudgetsProvider");
+  }
+  return context;
 };

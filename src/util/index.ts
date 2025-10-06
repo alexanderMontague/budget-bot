@@ -25,3 +25,27 @@ export const generateTransactionHash = (
 
   return hashFn(`${tx.date}-${tx.merchant}-${tx.amount}-${tx.description}`);
 };
+
+export const formatDateToHumanReadable = (date: string): string => {
+  const [year, month, day] = date.split("-");
+
+  if (!day) {
+    return new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString(
+      "en-US",
+      {
+        year: "numeric",
+        month: "long",
+      }
+    );
+  }
+
+  return new Date(
+    parseInt(year),
+    parseInt(month) - 1,
+    parseInt(day)
+  ).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};

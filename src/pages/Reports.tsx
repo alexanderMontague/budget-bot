@@ -2,10 +2,11 @@ import { useCategories } from "../hooks/useCategories";
 import { useBudgets } from "../hooks/useBudgets";
 import { useTransactions } from "../hooks/useTransactions";
 import { useDate } from "../hooks/useDate";
+import { formatDateToHumanReadable } from "../util";
 
 export default function Reports() {
   const { categories } = useCategories();
-  const { getCurrentBudget } = useBudgets();
+  const { budgets, getCurrentBudget } = useBudgets();
   const { transactions } = useTransactions();
   const { currentMonthAndYear } = useDate();
 
@@ -60,9 +61,11 @@ export default function Reports() {
         <h1 className="heading-2">Reports & Analytics</h1>
         <div className="flex flex-col sm:flex-row gap-3 sm:space-x-3 sm:gap-0">
           <select className="select text-sm">
-            <option>September 2025</option>
-            <option>August 2025</option>
-            <option>July 2025</option>
+            {budgets.map(budget => (
+              <option key={budget.id} value={budget.month}>
+                {formatDateToHumanReadable(budget.month)}
+              </option>
+            ))}
           </select>
           <button className="btn-secondary">Export Data</button>
         </div>

@@ -1,8 +1,30 @@
-import { useState, useEffect, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import type { ReactNode } from "react";
 import { dataService } from "../services/dataService";
 import type { Category } from "../types";
 
-export const useCategories = () => {
+interface CategoriesContextType {
+  categories: Category[];
+  loading: boolean;
+  error: string | null;
+  createCategory: (categoryData: Omit<Category, "id">) => Promise<Category>;
+  updateCategory: (id: string, updates: Partial<Category>) => Promise<Category>;
+  deleteCategory: (id: string) => Promise<void>;
+  deleteAllCategories: () => Promise<void>;
+  loadCategories: () => Promise<void>;
+}
+
+const CategoriesContext = createContext<CategoriesContextType | undefined>(
+  undefined
+);
+
+export const CategoriesProvider = ({ children }: { children: ReactNode }) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,14 +106,29 @@ export const useCategories = () => {
     loadCategories();
   }, [loadCategories]);
 
-  return {
-    categories,
-    loading,
-    error,
-    createCategory,
-    updateCategory,
-    deleteCategory,
-    deleteAllCategories,
-    loadCategories,
-  };
+  return (
+    <CategoriesContext.Provider
+      value={{
+        categories,
+        loading,
+        error,
+        createCategory,
+        updateCategory,
+        deleteCategory,
+        deleteAllCategories,
+        loadCategories,
+      }}
+    >
+      {children}
+    </CategoriesContext.Provider>
+  );
+};
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const useCategories = () => {
+  const context = useContext(CategoriesContext);
+  if (context === undefined) {
+    throw new Error("useCategories must be used within a CategoriesProvider");
+  }
+  return context;
 };

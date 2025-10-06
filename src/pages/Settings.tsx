@@ -174,10 +174,15 @@ export default function Settings() {
         </div>
         <div className="mt-4 pt-4 border-t border-gray-200">
           <button
-            onClick={() =>
-              confirm("Are you sure you want to delete all data?") &&
-              dataService.clearAllData()
-            }
+            onClick={async () => {
+              if (confirm("Are you sure you want to delete all data?")) {
+                await Promise.all([
+                  deleteAllCategories(),
+                  deleteAllBudgets(),
+                  deleteAllTransactions(),
+                ]);
+              }
+            }}
             className="text-danger-600 hover:text-danger-700 font-medium"
           >
             🗑️ Clear All Data
