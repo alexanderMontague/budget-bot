@@ -114,6 +114,7 @@ class DataService {
 }
 
 // Create and export a singleton instance
+// fix database initialization
 const USE_LOCAL_STORAGE = import.meta.env.VITE_USE_LOCAL_STORAGE === "1";
 export const dataService = new DataService(
   USE_LOCAL_STORAGE

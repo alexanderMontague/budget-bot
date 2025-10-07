@@ -106,7 +106,7 @@ export default function Transactions() {
               </p>
             </div>
             <div className="card">
-              <p className="text-sm font-medium text-gray-500">Net</p>
+              <p className="text-sm font-medium text-gray-500">Total Spent</p>
               <p
                 className={`text-2xl font-bold ${
                   monthStats.totalIncome - monthStats.totalExpense >= 0
