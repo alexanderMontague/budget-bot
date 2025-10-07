@@ -1,11 +1,11 @@
+import { useState } from "react";
 import { useDate } from "../hooks/useDate";
-
 import { useTransactions } from "../hooks/useTransactions";
 import { useBudgets } from "../hooks/useBudgets";
 import { useCategories } from "../hooks/useCategories";
-
 import type { CategoryProgress, Category, Budget, Transaction } from "../types";
 import { useNavigate } from "react-router-dom";
+import TransactionUpload from "../components/TransactionUpload";
 
 function calculateCategoryProgress(
   categories: Category[],
@@ -57,6 +57,7 @@ export default function Dashboard() {
   const currentBudget = getCurrentBudget();
   const { currentMonthAndYearTitle, currentMonthAndYear } = useDate();
   const navigate = useNavigate();
+  const [showUpload, setShowUpload] = useState(false);
 
   const loading = categoriesLoading || budgetsLoading || transactionsLoading;
 
@@ -68,21 +69,61 @@ export default function Dashboard() {
     );
   }
 
+  if (!currentBudget && transactions.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="card">
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">🚀</div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Welcome to Budget Tracker
+            </h2>
+            <p className="text-gray-600 mb-8 max-w-md mx-auto">
+              Get started by uploading your first bank statement. We'll
+              automatically parse transactions and help you track your spending.
+            </p>
+            <button
+              onClick={() => setShowUpload(true)}
+              className="btn-primary text-lg px-8 py-3"
+            >
+              📥 Upload Your First Statement
+            </button>
+            <div className="mt-8 pt-8 border-t border-gray-200">
+              <p className="text-sm text-gray-500 mb-4">Or set up manually:</p>
+              <button
+                className="btn-secondary"
+                onClick={() => navigate("/budget")}
+              >
+                Set Up Budget & Categories
+              </button>
+            </div>
+          </div>
+        </div>
+        <TransactionUpload
+          isOpen={showUpload}
+          onClose={() => setShowUpload(false)}
+        />
+      </div>
+    );
+  }
+
   if (!currentBudget) {
     return (
-      <div className="flex items-center flex-col justify-center min-h-64">
-        <div className="text-lg text-gray-500">
-          No budget found for {currentMonthAndYearTitle}
-        </div>
-        <div className="mt-4">
-          <button
-            className="btn-primary"
-            onClick={() => {
-              navigate("/budget");
-            }}
-          >
-            Create Budget
-          </button>
+      <div className="space-y-6">
+        <div className="flex items-center flex-col justify-center min-h-64">
+          <div className="text-lg text-gray-500">
+            No budget found for {currentMonthAndYearTitle}
+          </div>
+          <div className="mt-4">
+            <button
+              className="btn-primary"
+              onClick={() => {
+                navigate("/budget");
+              }}
+            >
+              Create Budget
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -106,6 +147,9 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="heading-2">{currentMonthAndYearTitle}</h1>
+        <button onClick={() => setShowUpload(true)} className="btn-primary">
+          📥 Upload Statement
+        </button>
       </div>
 
       {/* Summary Cards */}
@@ -209,6 +253,11 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      <TransactionUpload
+        isOpen={showUpload}
+        onClose={() => setShowUpload(false)}
+      />
     </div>
   );
 }

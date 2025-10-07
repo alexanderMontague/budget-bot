@@ -2,6 +2,7 @@ import { Outlet, NavLink } from "react-router-dom";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: "📊" },
+  { name: "Transactions", href: "/transactions", icon: "💳" },
   { name: "Budget", href: "/budget", icon: "💰" },
   { name: "Reports", href: "/reports", icon: "📈" },
   { name: "Settings", href: "/settings", icon: "⚙️" },
@@ -48,7 +49,7 @@ export default function Layout() {
         className="show-mobile fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-pb z-50"
         style={{ height: "var(--nav-mobile-height)" }}
       >
-        <div className={`grid grid-cols-4 h-full w-full`}>
+        <div className={`grid grid-cols-5 h-full w-full`}>
           {navigation.map(item => (
             <NavLink
               key={item.name}
@@ -58,7 +59,7 @@ export default function Layout() {
               }
             >
               <span className="text-lg mb-1">{item.icon}</span>
-              <span className="font-medium">{item.name}</span>
+              <span className="font-medium text-xs">{item.name}</span>
             </NavLink>
           ))}
         </div>

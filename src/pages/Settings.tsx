@@ -1,70 +1,41 @@
-import { useState } from "react";
-import { useTransactions } from "../hooks/useTransactions";
 import { useBudgets } from "../hooks/useBudgets";
 import { useCategories } from "../hooks/useCategories";
+import { useTransactions } from "../hooks/useTransactions";
 import { dataService } from "../services/dataService";
-import AddCategoryModal from "../components/AddCategoryModal";
-import TransactionUpload from "../components/TransactionUpload";
-import type { Category } from "../types";
 
 export default function Settings() {
-  const {
-    categories,
-    createCategory,
-    updateCategory,
-    deleteCategory,
-    deleteAllCategories,
-  } = useCategories();
+  const { deleteAllCategories } = useCategories();
   const { deleteAllBudgets } = useBudgets();
   const { deleteAllTransactions } = useTransactions();
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | undefined>(
-    undefined
-  );
-  const [showTransactionUpload, setShowTransactionUpload] = useState(false);
 
-  const handleSaveCategory = async (categoryData: {
-    name: string;
-    monthlyBudget: number;
-    color: string;
-  }) => {
+  const handleExportData = async () => {
     try {
-      if (editingCategory) {
-        await updateCategory(editingCategory.id, categoryData);
-      } else {
-        await createCategory(categoryData);
-      }
-      setEditingCategory(undefined);
-    } catch {
-      alert(
-        `Failed to ${
-          editingCategory ? "update" : "add"
-        } category. Please try again.`
-      );
+      const data = await dataService.exportData();
+      const dataStr = JSON.stringify(data, null, 2);
+      const dataBlob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `budget-tracker-export-${
+        new Date().toISOString().split("T")[0]
+      }.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Export failed:", error);
+      alert("Failed to export data. Please try again.");
     }
   };
 
-  const handleEditCategory = (category: Category) => {
-    setEditingCategory(category);
-    setShowCategoryModal(true);
-  };
-
-  const handleCloseCategoryModal = () => {
-    setShowCategoryModal(false);
-    setEditingCategory(undefined);
-  };
-
-  const handleDeleteCategory = async (categoryId: string) => {
-    if (
-      confirm(
-        "Are you sure you want to delete this category? This action cannot be undone."
-      )
-    ) {
-      try {
-        await deleteCategory(categoryId);
-      } catch {
-        alert("Failed to delete category. Please try again.");
-      }
+  const handleLogData = async () => {
+    try {
+      const data = await dataService.exportData();
+      console.log("Data Logged:", data);
+    } catch (error) {
+      console.error("Log failed:", error);
+      alert("Failed to log data. Please try again.");
     }
   };
 
@@ -72,66 +43,12 @@ export default function Settings() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="heading-2">Settings</h1>
-        <button className="btn-secondary">Export All Data</button>
       </div>
 
-      {/* Categories Section */}
       <div className="card">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-          <h2 className="heading-4">Categories</h2>
-          <button
-            onClick={() => setShowCategoryModal(true)}
-            className="btn-primary"
-          >
-            + Add Category
-          </button>
-        </div>
-
-        <div className="space-y-3">
-          {categories.map(category => (
-            <div
-              key={category.id}
-              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 border border-gray-200 rounded-lg"
-            >
-              <div className="flex items-center space-x-3 flex-1 min-w-0">
-                <div
-                  className="w-6 h-6 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: category.color }}
-                />
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-medium text-gray-900 truncate">
-                    {category.name}
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    Default Budget: $
-                    {category.monthlyBudget?.toFixed(2) || "0.00"}
-                  </p>
-                </div>
-              </div>
-              <div className="flex space-x-2 flex-shrink-0">
-                <button
-                  onClick={() => handleEditCategory(category)}
-                  className="text-primary-600 hover:text-primary-700 px-2 py-1 text-sm"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDeleteCategory(category.id)}
-                  className="text-danger-600 hover:text-danger-700 px-2 py-1 text-sm"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* App Settings */}
-      <div className="card">
-        <h2 className="heading-4 mb-4">App Settings</h2>
+        <h2 className="heading-4 mb-4">Preferences</h2>
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
             <div>
               <h3 className="font-medium text-gray-900">Dark Mode</h3>
               <p className="text-sm text-gray-500">Toggle dark mode theme</p>
@@ -142,13 +59,14 @@ export default function Settings() {
             </label>
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
             <div>
               <h3 className="font-medium text-gray-900">
                 Auto-categorize Transactions
               </h3>
               <p className="text-sm text-gray-500">
-                Automatically assign categories to new transactions
+                Automatically assign categories to new transactions based on
+                merchant names
               </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
@@ -159,83 +77,100 @@ export default function Settings() {
         </div>
       </div>
 
-      {/* Data Management */}
       <div className="card">
         <h2 className="heading-4 mb-4">Data Management</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="flex flex-col space-y-3">
           <button
-            className="btn-secondary"
-            onClick={() => setShowTransactionUpload(true)}
+            className="btn-secondary sm:w-auto"
+            onClick={handleExportData}
           >
-            📥 Import Transactions
+            📤 Export All Data
           </button>
-          <button
-            className="btn-secondary"
-            onClick={async () => console.log(await dataService.exportData())}
-          >
-            📝 Log Data
+          <button className="btn-secondary sm:w-auto" onClick={handleLogData}>
+            🔍 Log All Data
           </button>
-          <button
-            className="btn-danger"
-            onClick={() =>
-              confirm("Are you sure you want to delete all categories?") &&
-              deleteAllCategories()
-            }
-          >
-            🗑️ Clear Categories Data
-          </button>
-          <button
-            className="btn-danger"
-            onClick={() =>
-              confirm("Are you sure you want to delete all budgets?") &&
-              deleteAllBudgets()
-            }
-          >
-            🗑️ Clear Budgets Data
-          </button>
-          <button
-            className="btn-danger"
-            onClick={() =>
-              confirm("Are you sure you want to delete all transactions?") &&
-              deleteAllTransactions()
-            }
-          >
-            🗑️ Clear Transactions Data
-          </button>
-        </div>
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <button
-            onClick={async () => {
-              if (confirm("Are you sure you want to delete all data?")) {
-                await Promise.all([
-                  deleteAllCategories(),
-                  deleteAllBudgets(),
-                  deleteAllTransactions(),
-                ]);
-              }
-            }}
-            className="text-danger-600 hover:text-danger-700 font-medium"
-          >
-            🗑️ Clear All Data
-          </button>
-          <p className="text-sm text-gray-500 mt-1">
-            This will permanently delete all transactions, categories, and
-            settings.
+          <p className="text-sm text-gray-500">
+            Download all your budget data as JSON
           </p>
         </div>
       </div>
 
-      <AddCategoryModal
-        isOpen={showCategoryModal}
-        onClose={handleCloseCategoryModal}
-        onSubmit={handleSaveCategory}
-        category={editingCategory}
-      />
+      <div className="card border-danger-200 bg-danger-50">
+        <h2 className="heading-4 mb-4 text-danger-900">Danger Zone</h2>
+        <div className="space-y-4">
+          <div>
+            <button
+              className="btn-danger"
+              onClick={() =>
+                confirm(
+                  "Are you sure you want to delete all categories? This will affect all related transactions and budgets."
+                ) && deleteAllCategories()
+              }
+            >
+              Clear All Categories
+            </button>
+            <p className="text-sm text-danger-700 mt-1">
+              Delete all categories and unassign them from transactions
+            </p>
+          </div>
 
-      <TransactionUpload
-        isOpen={showTransactionUpload}
-        onClose={() => setShowTransactionUpload(false)}
-      />
+          <div>
+            <button
+              className="btn-danger"
+              onClick={() =>
+                confirm("Are you sure you want to delete all budgets?") &&
+                deleteAllBudgets()
+              }
+            >
+              Clear All Budgets
+            </button>
+            <p className="text-sm text-danger-700 mt-1">
+              Delete all budget allocations for all months
+            </p>
+          </div>
+
+          <div>
+            <button
+              className="btn-danger"
+              onClick={() =>
+                confirm("Are you sure you want to delete all transactions?") &&
+                deleteAllTransactions()
+              }
+            >
+              Clear All Transactions
+            </button>
+            <p className="text-sm text-danger-700 mt-1">
+              Delete all imported transactions permanently
+            </p>
+          </div>
+
+          <div className="pt-4 border-t border-danger-300">
+            <button
+              onClick={async () => {
+                if (
+                  confirm(
+                    "⚠️ WARNING: This will delete ALL data including categories, budgets, and transactions. This action cannot be undone. Are you absolutely sure?"
+                  )
+                ) {
+                  await Promise.all([
+                    deleteAllCategories(),
+                    deleteAllBudgets(),
+                    deleteAllTransactions(),
+                  ]);
+                  alert("All data has been cleared.");
+                }
+              }}
+              className="btn-danger font-bold"
+            >
+              🗑️ Clear ALL Data
+            </button>
+            <p className="text-sm text-danger-700 mt-1 font-medium">
+              This will permanently delete everything: categories, budgets, and
+              transactions.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
