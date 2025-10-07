@@ -1,5 +1,6 @@
 import type { StorageRepository } from "../types/storage";
 import { LocalStorageRepository } from "../storage/localStorage";
+import { DatabaseRepository } from "../storage/databaseRepository";
 import type { Category, Budget, Transaction } from "../types";
 import { generateId } from "../util";
 
@@ -113,5 +114,10 @@ class DataService {
 }
 
 // Create and export a singleton instance
-export const dataService = new DataService();
+const USE_LOCAL_STORAGE = import.meta.env.VITE_USE_LOCAL_STORAGE === "1";
+export const dataService = new DataService(
+  USE_LOCAL_STORAGE
+    ? new LocalStorageRepository()
+    : new DatabaseRepository({ apiBaseUrl: "http://localhost:8088" })
+);
 export default DataService;

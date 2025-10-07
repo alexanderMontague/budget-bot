@@ -15,13 +15,13 @@ export class DatabaseRepository implements StorageRepository {
 
   // Categories
   async getCategories(): Promise<Category[]> {
-    const response = await fetch(`${this.apiBaseUrl}/categories`);
+    const response = await fetch(`${this.apiBaseUrl}/budget/categories`);
     if (!response.ok) throw new Error("Failed to fetch categories");
     return response.json();
   }
 
   async saveCategory(category: Category): Promise<Category> {
-    const response = await fetch(`${this.apiBaseUrl}/categories`, {
+    const response = await fetch(`${this.apiBaseUrl}/budget/categories`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(category),
@@ -34,7 +34,7 @@ export class DatabaseRepository implements StorageRepository {
     id: string,
     category: Partial<Category>
   ): Promise<Category> {
-    const response = await fetch(`${this.apiBaseUrl}/categories/${id}`, {
+    const response = await fetch(`${this.apiBaseUrl}/budget/categories/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(category),
@@ -44,7 +44,7 @@ export class DatabaseRepository implements StorageRepository {
   }
 
   async deleteCategory(id: string): Promise<void> {
-    const response = await fetch(`${this.apiBaseUrl}/categories/${id}`, {
+    const response = await fetch(`${this.apiBaseUrl}/budget/categories/${id}`, {
       method: "DELETE",
     });
     if (!response.ok) throw new Error("Failed to delete category");
@@ -52,13 +52,13 @@ export class DatabaseRepository implements StorageRepository {
 
   // Budgets
   async getBudgets(): Promise<Budget[]> {
-    const response = await fetch(`${this.apiBaseUrl}/budgets`);
+    const response = await fetch(`${this.apiBaseUrl}/budget/budgets`);
     if (!response.ok) throw new Error("Failed to fetch budgets");
     return response.json();
   }
 
   async saveBudget(budget: Budget): Promise<Budget> {
-    const response = await fetch(`${this.apiBaseUrl}/budgets`, {
+    const response = await fetch(`${this.apiBaseUrl}/budget/budgets`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(budget),
@@ -68,7 +68,7 @@ export class DatabaseRepository implements StorageRepository {
   }
 
   async updateBudget(id: string, budget: Partial<Budget>): Promise<Budget> {
-    const response = await fetch(`${this.apiBaseUrl}/budgets/${id}`, {
+    const response = await fetch(`${this.apiBaseUrl}/budget/budgets/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(budget),
@@ -78,21 +78,21 @@ export class DatabaseRepository implements StorageRepository {
   }
 
   async deleteBudget(id: string): Promise<void> {
-    const response = await fetch(`${this.apiBaseUrl}/budgets/${id}`, {
+    const response = await fetch(`${this.apiBaseUrl}/budget/budgets/${id}`, {
       method: "DELETE",
     });
     if (!response.ok) throw new Error("Failed to delete budget");
   }
 
   async deleteAllBudgets(): Promise<void> {
-    const response = await fetch(`${this.apiBaseUrl}/budgets`, {
+    const response = await fetch(`${this.apiBaseUrl}/budget/budgets`, {
       method: "DELETE",
     });
     if (!response.ok) throw new Error("Failed to delete all budgets");
   }
 
   async deleteAllCategories(): Promise<void> {
-    const response = await fetch(`${this.apiBaseUrl}/categories`, {
+    const response = await fetch(`${this.apiBaseUrl}/budget/categories`, {
       method: "DELETE",
     });
     if (!response.ok) throw new Error("Failed to delete all categories");
@@ -100,13 +100,13 @@ export class DatabaseRepository implements StorageRepository {
 
   // Transactions
   async getTransactions(): Promise<Transaction[]> {
-    const response = await fetch(`${this.apiBaseUrl}/transactions`);
+    const response = await fetch(`${this.apiBaseUrl}/budget/transactions`);
     if (!response.ok) throw new Error("Failed to fetch transactions");
     return response.json();
   }
 
   async saveTransactions(transaction: Transaction[]): Promise<Transaction[]> {
-    const response = await fetch(`${this.apiBaseUrl}/transactions`, {
+    const response = await fetch(`${this.apiBaseUrl}/budget/transactions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(transaction),
@@ -119,24 +119,30 @@ export class DatabaseRepository implements StorageRepository {
     id: string,
     updates: Partial<Transaction>
   ): Promise<Transaction> {
-    const response = await fetch(`${this.apiBaseUrl}/transactions/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updates),
-    });
+    const response = await fetch(
+      `${this.apiBaseUrl}/budget/transactions/${id}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      }
+    );
     if (!response.ok) throw new Error("Failed to update transaction");
     return response.json();
   }
 
   async deleteTransaction(id: string): Promise<void> {
-    const response = await fetch(`${this.apiBaseUrl}/transactions/${id}`, {
-      method: "DELETE",
-    });
+    const response = await fetch(
+      `${this.apiBaseUrl}/budget/transactions/${id}`,
+      {
+        method: "DELETE",
+      }
+    );
     if (!response.ok) throw new Error("Failed to delete transaction");
   }
 
   async deleteAllTransactions(): Promise<void> {
-    const response = await fetch(`${this.apiBaseUrl}/transactions`, {
+    const response = await fetch(`${this.apiBaseUrl}/budget/transactions`, {
       method: "DELETE",
     });
     if (!response.ok) throw new Error("Failed to delete all transactions");
@@ -144,20 +150,20 @@ export class DatabaseRepository implements StorageRepository {
 
   // Utility
   async clearAllData(): Promise<void> {
-    const response = await fetch(`${this.apiBaseUrl}/clear`, {
+    const response = await fetch(`${this.apiBaseUrl}/budget/clear`, {
       method: "DELETE",
     });
     if (!response.ok) throw new Error("Failed to clear data");
   }
 
   async exportData(): Promise<string> {
-    const response = await fetch(`${this.apiBaseUrl}/export`);
+    const response = await fetch(`${this.apiBaseUrl}/budget/export`);
     if (!response.ok) throw new Error("Failed to export data");
     return response.text();
   }
 
   async importData(data: string): Promise<void> {
-    const response = await fetch(`${this.apiBaseUrl}/import`, {
+    const response = await fetch(`${this.apiBaseUrl}/budget/import`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: data,
