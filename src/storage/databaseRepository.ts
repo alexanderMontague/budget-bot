@@ -1,9 +1,6 @@
 import type { StorageRepository, StorageConfig } from "../types/storage";
 import type { Category, Budget, Transaction } from "../types";
 
-// Example of how to implement a database repository
-// This would connect to your database of choice (PostgreSQL, MongoDB, etc.)
-
 export class DatabaseRepository implements StorageRepository {
   private apiBaseUrl: string;
 
@@ -11,11 +8,19 @@ export class DatabaseRepository implements StorageRepository {
     this.apiBaseUrl = config.apiBaseUrl;
   }
 
-  // Example implementation - replace with actual database calls
+  private getHeaders(): HeadersInit {
+    const token = localStorage.getItem("auth_token");
+    return {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+  }
 
   // Categories
   async getCategories(): Promise<Category[]> {
-    const response = await fetch(`${this.apiBaseUrl}/budget/categories`);
+    const response = await fetch(`${this.apiBaseUrl}/budget/categories`, {
+      headers: this.getHeaders(),
+    });
     if (!response.ok) throw new Error("Failed to fetch categories");
     return response.json();
   }
@@ -23,7 +28,7 @@ export class DatabaseRepository implements StorageRepository {
   async saveCategory(category: Category): Promise<Category> {
     const response = await fetch(`${this.apiBaseUrl}/budget/categories`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: this.getHeaders(),
       body: JSON.stringify(category),
     });
     if (!response.ok) throw new Error("Failed to save category");
@@ -36,7 +41,7 @@ export class DatabaseRepository implements StorageRepository {
   ): Promise<Category> {
     const response = await fetch(`${this.apiBaseUrl}/budget/categories/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: this.getHeaders(),
       body: JSON.stringify(category),
     });
     if (!response.ok) throw new Error("Failed to update category");
@@ -46,13 +51,16 @@ export class DatabaseRepository implements StorageRepository {
   async deleteCategory(id: string): Promise<void> {
     const response = await fetch(`${this.apiBaseUrl}/budget/categories/${id}`, {
       method: "DELETE",
+      headers: this.getHeaders(),
     });
     if (!response.ok) throw new Error("Failed to delete category");
   }
 
   // Budgets
   async getBudgets(): Promise<Budget[]> {
-    const response = await fetch(`${this.apiBaseUrl}/budget/budgets`);
+    const response = await fetch(`${this.apiBaseUrl}/budget/budgets`, {
+      headers: this.getHeaders(),
+    });
     if (!response.ok) throw new Error("Failed to fetch budgets");
     return response.json();
   }
@@ -60,7 +68,7 @@ export class DatabaseRepository implements StorageRepository {
   async saveBudget(budget: Budget): Promise<Budget> {
     const response = await fetch(`${this.apiBaseUrl}/budget/budgets`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: this.getHeaders(),
       body: JSON.stringify(budget),
     });
     if (!response.ok) throw new Error("Failed to save budget");
@@ -70,7 +78,7 @@ export class DatabaseRepository implements StorageRepository {
   async updateBudget(id: string, budget: Partial<Budget>): Promise<Budget> {
     const response = await fetch(`${this.apiBaseUrl}/budget/budgets/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: this.getHeaders(),
       body: JSON.stringify(budget),
     });
     if (!response.ok) throw new Error("Failed to update budget");
@@ -80,6 +88,7 @@ export class DatabaseRepository implements StorageRepository {
   async deleteBudget(id: string): Promise<void> {
     const response = await fetch(`${this.apiBaseUrl}/budget/budgets/${id}`, {
       method: "DELETE",
+      headers: this.getHeaders(),
     });
     if (!response.ok) throw new Error("Failed to delete budget");
   }
@@ -87,6 +96,7 @@ export class DatabaseRepository implements StorageRepository {
   async deleteAllBudgets(): Promise<void> {
     const response = await fetch(`${this.apiBaseUrl}/budget/budgets`, {
       method: "DELETE",
+      headers: this.getHeaders(),
     });
     if (!response.ok) throw new Error("Failed to delete all budgets");
   }
@@ -94,13 +104,16 @@ export class DatabaseRepository implements StorageRepository {
   async deleteAllCategories(): Promise<void> {
     const response = await fetch(`${this.apiBaseUrl}/budget/categories`, {
       method: "DELETE",
+      headers: this.getHeaders(),
     });
     if (!response.ok) throw new Error("Failed to delete all categories");
   }
 
   // Transactions
   async getTransactions(): Promise<Transaction[]> {
-    const response = await fetch(`${this.apiBaseUrl}/budget/transactions`);
+    const response = await fetch(`${this.apiBaseUrl}/budget/transactions`, {
+      headers: this.getHeaders(),
+    });
     if (!response.ok) throw new Error("Failed to fetch transactions");
     return response.json();
   }
@@ -108,7 +121,7 @@ export class DatabaseRepository implements StorageRepository {
   async saveTransactions(transaction: Transaction[]): Promise<Transaction[]> {
     const response = await fetch(`${this.apiBaseUrl}/budget/transactions`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: this.getHeaders(),
       body: JSON.stringify(transaction),
     });
     if (!response.ok) throw new Error("Failed to save transaction");
@@ -123,7 +136,7 @@ export class DatabaseRepository implements StorageRepository {
       `${this.apiBaseUrl}/budget/transactions/${id}`,
       {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: this.getHeaders(),
         body: JSON.stringify(updates),
       }
     );
@@ -136,6 +149,7 @@ export class DatabaseRepository implements StorageRepository {
       `${this.apiBaseUrl}/budget/transactions/${id}`,
       {
         method: "DELETE",
+        headers: this.getHeaders(),
       }
     );
     if (!response.ok) throw new Error("Failed to delete transaction");
@@ -144,6 +158,7 @@ export class DatabaseRepository implements StorageRepository {
   async deleteAllTransactions(): Promise<void> {
     const response = await fetch(`${this.apiBaseUrl}/budget/transactions`, {
       method: "DELETE",
+      headers: this.getHeaders(),
     });
     if (!response.ok) throw new Error("Failed to delete all transactions");
   }
@@ -152,12 +167,15 @@ export class DatabaseRepository implements StorageRepository {
   async clearAllData(): Promise<void> {
     const response = await fetch(`${this.apiBaseUrl}/budget/clear`, {
       method: "DELETE",
+      headers: this.getHeaders(),
     });
     if (!response.ok) throw new Error("Failed to clear data");
   }
 
   async exportData(): Promise<string> {
-    const response = await fetch(`${this.apiBaseUrl}/budget/export`);
+    const response = await fetch(`${this.apiBaseUrl}/budget/export`, {
+      headers: this.getHeaders(),
+    });
     if (!response.ok) throw new Error("Failed to export data");
     return response.text();
   }
@@ -165,7 +183,7 @@ export class DatabaseRepository implements StorageRepository {
   async importData(data: string): Promise<void> {
     const response = await fetch(`${this.apiBaseUrl}/budget/import`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: this.getHeaders(),
       body: data,
     });
     if (!response.ok) throw new Error("Failed to import data");

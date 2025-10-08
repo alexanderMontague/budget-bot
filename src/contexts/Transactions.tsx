@@ -110,7 +110,7 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
         throw err;
       }
     },
-    [transactions, budgets]
+    [transactions, budgets, categories, createBudget]
   );
 
   const updateTransaction = useCallback(

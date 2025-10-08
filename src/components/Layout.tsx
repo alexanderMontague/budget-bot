@@ -1,4 +1,5 @@
 import { Outlet, NavLink } from "react-router-dom";
+import { useAuth } from "../contexts/Auth";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: "📊" },
@@ -9,6 +10,8 @@ const navigation = [
 ];
 
 export default function Layout() {
+  const { logout, user } = useAuth();
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <header
@@ -20,20 +23,31 @@ export default function Layout() {
             <div className="flex-start">
               <h1 className="heading-1">Budget Tracker</h1>
             </div>
-            <nav className="hide-mobile space-x-8">
-              {navigation.map(item => (
-                <NavLink
-                  key={item.name}
-                  to={item.href}
-                  className={({ isActive }) =>
-                    isActive ? "nav-link-active" : "nav-link-inactive"
-                  }
+            <div className="hide-mobile flex items-center space-x-8">
+              <nav className="space-x-8">
+                {navigation.map(item => (
+                  <NavLink
+                    key={item.name}
+                    to={item.href}
+                    className={({ isActive }) =>
+                      isActive ? "nav-link-active" : "nav-link-inactive"
+                    }
+                  >
+                    <span className="mr-2">{item.icon}</span>
+                    {item.name}
+                  </NavLink>
+                ))}
+              </nav>
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-gray-600">{user?.email}</span>
+                <button
+                  onClick={logout}
+                  className="text-sm text-red-600 hover:text-red-700 font-medium"
                 >
-                  <span className="mr-2">{item.icon}</span>
-                  {item.name}
-                </NavLink>
-              ))}
-            </nav>
+                  Logout
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </header>
