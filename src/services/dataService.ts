@@ -6,14 +6,17 @@ import { generateId } from "../util";
 
 class DataService {
   private repository: StorageRepository;
+  private useLocalStorage: boolean;
 
-  constructor(repository?: StorageRepository) {
+  constructor(repository?: StorageRepository, useLocalStorage?: boolean) {
     this.repository = repository || new LocalStorageRepository();
+    this.useLocalStorage = useLocalStorage ?? true;
   }
 
   // Allow swapping storage implementations
-  setRepository(repository: StorageRepository) {
+  setRepository(repository: StorageRepository, useLocalStorage?: boolean) {
     this.repository = repository;
+    this.useLocalStorage = useLocalStorage ?? this.useLocalStorage;
   }
 
   // Categories
@@ -22,11 +25,14 @@ class DataService {
   }
 
   async createCategory(categoryData: Omit<Category, "id">): Promise<Category> {
-    const category: Category = {
-      ...categoryData,
-      id: generateId(),
-    };
-    return this.repository.saveCategory(category);
+    if (this.useLocalStorage) {
+      const category: Category = {
+        ...categoryData,
+        id: generateId(),
+      };
+      return this.repository.saveCategory(category);
+    }
+    return this.repository.saveCategory(categoryData);
   }
 
   async updateCategory(
@@ -50,11 +56,14 @@ class DataService {
   }
 
   async createBudget(budgetData: Omit<Budget, "id">): Promise<Budget> {
-    const budget: Budget = {
-      ...budgetData,
-      id: generateId(),
-    };
-    return this.repository.saveBudget(budget);
+    if (this.useLocalStorage) {
+      const budget: Budget = {
+        ...budgetData,
+        id: generateId(),
+      };
+      return this.repository.saveBudget(budget);
+    }
+    return this.repository.saveBudget(budgetData);
   }
 
   async updateBudget(id: string, updates: Partial<Budget>): Promise<Budget> {
@@ -77,11 +86,14 @@ class DataService {
   async createTransactions(
     transactionData: Omit<Transaction, "id">[]
   ): Promise<Transaction[]> {
-    const transactions = transactionData.map(data => ({
-      ...data,
-      id: generateId(),
-    }));
-    return this.repository.saveTransactions(transactions);
+    if (this.useLocalStorage) {
+      const transactions = transactionData.map(data => ({
+        ...data,
+        id: generateId(),
+      }));
+      return this.repository.saveTransactions(transactions);
+    }
+    return this.repository.saveTransactions(transactionData);
   }
 
   async updateTransaction(
@@ -114,11 +126,11 @@ class DataService {
 }
 
 // Create and export a singleton instance
-// fix database initialization
 const USE_LOCAL_STORAGE = import.meta.env.VITE_USE_LOCAL_STORAGE === "1";
 export const dataService = new DataService(
   USE_LOCAL_STORAGE
     ? new LocalStorageRepository()
-    : new DatabaseRepository({ apiBaseUrl: "http://localhost:8088" })
+    : new DatabaseRepository({ apiBaseUrl: "http://localhost:8088" }),
+  USE_LOCAL_STORAGE
 );
 export default DataService;

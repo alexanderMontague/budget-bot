@@ -55,18 +55,21 @@ export class LocalStorageRepository implements StorageRepository {
     return data.categories;
   }
 
-  async saveCategory(category: Category): Promise<Category> {
+  async saveCategory(category: Partial<Category>): Promise<Category> {
     const data = await this.loadData();
-    const existingIndex = data.categories.findIndex(c => c.id === category.id);
+    const fullCategory = category as Category;
+    const existingIndex = data.categories.findIndex(
+      c => c.id === fullCategory.id
+    );
 
     if (existingIndex >= 0) {
-      data.categories[existingIndex] = category;
+      data.categories[existingIndex] = fullCategory;
     } else {
-      data.categories.push(category);
+      data.categories.push(fullCategory);
     }
 
     await this.saveData(data);
-    return category;
+    return fullCategory;
   }
 
   async updateCategory(
@@ -105,18 +108,19 @@ export class LocalStorageRepository implements StorageRepository {
     return data.budgets;
   }
 
-  async saveBudget(budget: Budget): Promise<Budget> {
+  async saveBudget(budget: Partial<Budget>): Promise<Budget> {
     const data = await this.loadData();
-    const existingIndex = data.budgets.findIndex(b => b.id === budget.id);
+    const fullBudget = budget as Budget;
+    const existingIndex = data.budgets.findIndex(b => b.id === fullBudget.id);
 
     if (existingIndex >= 0) {
-      data.budgets[existingIndex] = budget;
+      data.budgets[existingIndex] = fullBudget;
     } else {
-      data.budgets.push(budget);
+      data.budgets.push(fullBudget);
     }
 
     await this.saveData(data);
-    return budget;
+    return fullBudget;
   }
 
   async updateBudget(id: string, updates: Partial<Budget>): Promise<Budget> {
@@ -152,9 +156,12 @@ export class LocalStorageRepository implements StorageRepository {
     return data.transactions || [];
   }
 
-  async saveTransactions(transactions: Transaction[]): Promise<Transaction[]> {
+  async saveTransactions(
+    transactions: Partial<Transaction>[]
+  ): Promise<Transaction[]> {
     const data = await this.loadData();
-    transactions.forEach(transaction => {
+    const fullTransactions = transactions as Transaction[];
+    fullTransactions.forEach(transaction => {
       const existingIndex = data.transactions.findIndex(
         t => t.id === transaction.id
       );
@@ -167,7 +174,7 @@ export class LocalStorageRepository implements StorageRepository {
     });
 
     await this.saveData(data);
-    return transactions;
+    return fullTransactions;
   }
 
   async updateTransaction(

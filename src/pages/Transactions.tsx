@@ -4,6 +4,7 @@ import { useCategories } from "../hooks/useCategories";
 import { useDate } from "../hooks/useDate";
 import TransactionUpload from "../components/TransactionUpload";
 import type { Transaction } from "../types";
+import { formatDateToHumanReadable } from "../util";
 
 export default function Transactions() {
   const { transactions, updateTransaction, deleteTransaction } =
@@ -40,17 +41,11 @@ export default function Transactions() {
   };
 
   const monthStats = {
-    total: filteredTransactions.length,
-    expenses: filteredTransactions.filter(t => t.amount < 0).length,
-    income: filteredTransactions.filter(t => t.amount > 0).length,
-    totalExpense: Math.abs(
-      filteredTransactions
-        .filter(t => t.amount < 0)
-        .reduce((sum, t) => sum + t.amount, 0)
-    ),
-    totalIncome: filteredTransactions
-      .filter(t => t.amount > 0)
-      .reduce((sum, t) => sum + t.amount, 0),
+    totalTx: filteredTransactions.length,
+    totalExpenses: filteredTransactions
+      .reduce((sum, t) => sum + t.amount, 0)
+      .toFixed(2),
+    totalIncomes: 0,
   };
 
   return (
@@ -86,36 +81,26 @@ export default function Transactions() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="card">
-              <p className="text-sm font-medium text-gray-500">Total</p>
+              <p className="text-sm font-medium text-gray-500">
+                Total Transactions
+              </p>
               <p className="text-2xl font-bold text-gray-900">
-                {monthStats.total}
+                {monthStats.totalTx}
               </p>
             </div>
             <div className="card">
-              <p className="text-sm font-medium text-gray-500">Expenses</p>
+              <p className="text-sm font-medium text-gray-500">
+                Total Expense Amount
+              </p>
               <p className="text-2xl font-bold text-red-600">
-                {monthStats.expenses}
+                ${monthStats.totalExpenses}
               </p>
             </div>
             <div className="card">
-              <p className="text-sm font-medium text-gray-500">Income</p>
-              <p className="text-2xl font-bold text-green-600">
-                {monthStats.income}
-              </p>
-            </div>
-            <div className="card">
-              <p className="text-sm font-medium text-gray-500">Total Spent</p>
-              <p
-                className={`text-2xl font-bold ${
-                  monthStats.totalIncome - monthStats.totalExpense >= 0
-                    ? "text-green-600"
-                    : "text-red-600"
-                }`}
-              >
-                ${(monthStats.totalIncome - monthStats.totalExpense).toFixed(2)}
-              </p>
+              <p className="text-sm font-medium text-gray-500">Income Amount</p>
+              <p className="text-2xl font-bold text-green-600">$0 todo</p>
             </div>
           </div>
 
@@ -129,10 +114,7 @@ export default function Transactions() {
               >
                 {availableMonths.map(month => (
                   <option key={month} value={month}>
-                    {new Date(month + "-01").toLocaleDateString("en-US", {
-                      month: "long",
-                      year: "numeric",
-                    })}
+                    {formatDateToHumanReadable(month)}
                   </option>
                 ))}
               </select>
@@ -159,17 +141,15 @@ export default function Transactions() {
                       />
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-gray-900 truncate">
-                          {transaction.merchant}
+                          {transaction.description}
                         </p>
                         <p className="text-sm text-gray-500">
-                          {new Date(transaction.date).toLocaleDateString()} •{" "}
+                          {transaction.date} •{" "}
                           {transaction.accountType.toUpperCase()}
                         </p>
-                        {transaction.description && (
-                          <p className="text-xs text-gray-400 truncate mt-1">
-                            {transaction.description}
-                          </p>
-                        )}
+                        <p className="text-xs text-gray-400 truncate mt-1">
+                          {transaction.merchant}
+                        </p>
                       </div>
                     </div>
 

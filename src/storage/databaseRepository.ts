@@ -25,7 +25,7 @@ export class DatabaseRepository implements StorageRepository {
     return response.json();
   }
 
-  async saveCategory(category: Category): Promise<Category> {
+  async saveCategory(category: Partial<Category>): Promise<Category> {
     const response = await fetch(`${this.apiBaseUrl}/budget/categories`, {
       method: "POST",
       headers: this.getHeaders(),
@@ -65,7 +65,7 @@ export class DatabaseRepository implements StorageRepository {
     return response.json();
   }
 
-  async saveBudget(budget: Budget): Promise<Budget> {
+  async saveBudget(budget: Partial<Budget>): Promise<Budget> {
     const response = await fetch(`${this.apiBaseUrl}/budget/budgets`, {
       method: "POST",
       headers: this.getHeaders(),
@@ -118,7 +118,9 @@ export class DatabaseRepository implements StorageRepository {
     return response.json();
   }
 
-  async saveTransactions(transaction: Transaction[]): Promise<Transaction[]> {
+  async saveTransactions(
+    transaction: Partial<Transaction>[]
+  ): Promise<Transaction[]> {
     const response = await fetch(`${this.apiBaseUrl}/budget/transactions`, {
       method: "POST",
       headers: this.getHeaders(),
@@ -135,7 +137,7 @@ export class DatabaseRepository implements StorageRepository {
     const response = await fetch(
       `${this.apiBaseUrl}/budget/transactions/${id}`,
       {
-        method: "PATCH",
+        method: "PUT",
         headers: this.getHeaders(),
         body: JSON.stringify(updates),
       }

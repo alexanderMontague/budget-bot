@@ -29,16 +29,13 @@ function calculateCategoryProgress(
     // Calculate spent amount from transactions for this month
     const spent = Math.abs(
       transactions
-        .filter(
-          t =>
-            t.categoryId === category.id &&
-            t.date.startsWith(currentMonth) &&
-            t.amount < 0 // Only count expenses
-        )
+        .filter(t => t.categoryId === category.id)
         .reduce((sum, t) => sum + t.amount, 0)
     );
 
     const remaining = budgeted - spent;
+
+    console.log(category, budgeted, spent, remaining);
 
     return {
       category,
