@@ -104,12 +104,16 @@ export class PdfParser {
     text: string,
     errors: string[]
   ): PdfParseResult {
+    debugger;
     const transactions = text
       .split("  Date   Description   Amount  ")
       .slice(1)
       .flatMap(it => it.split("  This is not a billing Statement.")[0])
       .flatMap(it =>
-        it.split(/(?<=\$\d+\.\d{2})\s(?=\d{1,2}\s[A-Z][a-z]{2}\.\s\d{4})/)
+        // split on $ dollar sign and then the date, capturing the transaction data
+        it.split(
+          /(?<=-\$\d{1,3}(?:,\d{3})*(?:\.\d{2})?|\$\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s+(?=\d{1,2}\s[A-Z][a-z]{2}\.?\s\d{4})/
+        )
       )
       .map(it =>
         it
