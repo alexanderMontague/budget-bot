@@ -3,7 +3,6 @@ import { useTransactions } from "../hooks/useTransactions";
 import { useCategories } from "../hooks/useCategories";
 import { useDate } from "../hooks/useDate";
 import TransactionUpload from "../components/TransactionUpload";
-import type { Transaction } from "../types";
 import { formatDateToHumanReadable } from "../util";
 
 export default function Transactions() {
@@ -13,9 +12,6 @@ export default function Transactions() {
   const { currentMonthAndYear } = useDate();
   const [showUpload, setShowUpload] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(currentMonthAndYear);
-  const [editingTransaction, setEditingTransaction] = useState<string | null>(
-    null
-  );
 
   const availableMonths = Array.from(
     new Set(transactions.map(t => t.date.substring(0, 7)))
@@ -125,7 +121,6 @@ export default function Transactions() {
                 const category = categories.find(
                   c => c.id === transaction.categoryId
                 );
-                const isEditing = editingTransaction === transaction.id;
 
                 return (
                   <div

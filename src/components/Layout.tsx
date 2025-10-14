@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from "react-router-dom";
-import { useAuth } from "../contexts/Auth";
+import { useAuth } from "../hooks/useAuth";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: "📊" },

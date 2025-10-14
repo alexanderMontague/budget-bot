@@ -7,8 +7,8 @@ import { useState } from "react";
 
 export default function Reports() {
   const { categories } = useCategories();
-  const { budgets, getCurrentBudget, getBudgetById } = useBudgets();
-  const { transactions, getTransactionsByMonthAndYear } = useTransactions();
+  const { budgets, getCurrentBudget } = useBudgets();
+  const { getTransactionsByMonthAndYear } = useTransactions();
   const { currentMonthAndYear } = useDate();
   const [selectedMonthAndYear, setSelectedMonthAndYear] =
     useState(currentMonthAndYear);

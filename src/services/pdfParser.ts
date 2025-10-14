@@ -104,7 +104,6 @@ export class PdfParser {
     text: string,
     errors: string[]
   ): PdfParseResult {
-    debugger;
     const transactions = text
       .split("  Date   Description   Amount  ")
       .slice(1)
