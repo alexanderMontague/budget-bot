@@ -103,14 +103,15 @@ export default function Settings() {
               className="btn-danger"
               onClick={() =>
                 confirm(
-                  "Are you sure you want to delete all categories? This will affect all related transactions and budgets."
+                  "Are you sure you want to delete all categories? This will affect all related transactions and budgets. The 'Other' category will be preserved."
                 ) && deleteAllCategories()
               }
             >
               Clear All Categories
             </button>
             <p className="text-sm text-danger-700 mt-1">
-              Delete all categories and unassign them from transactions
+              Delete all categories except "Other" and unassign them from
+              transactions
             </p>
           </div>
 

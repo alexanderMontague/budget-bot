@@ -274,12 +274,14 @@ export default function Budget() {
                       >
                         Edit
                       </button>
-                      <button
-                        onClick={() => handleDeleteCategory(category.id)}
-                        className="text-danger-600 hover:text-danger-700 px-3 py-1 text-sm font-medium"
-                      >
-                        Delete
-                      </button>
+                      {category.name !== "Other" && (
+                        <button
+                          onClick={() => handleDeleteCategory(category.id)}
+                          className="text-danger-600 hover:text-danger-700 px-3 py-1 text-sm font-medium"
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}

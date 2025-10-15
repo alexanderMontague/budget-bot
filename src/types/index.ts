@@ -3,6 +3,8 @@ export interface Category {
   name: string;
   monthlyBudget?: number;
   color?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Budget {

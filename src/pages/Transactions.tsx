@@ -13,6 +13,8 @@ export default function Transactions() {
   const [showUpload, setShowUpload] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(currentMonthAndYear);
 
+  const hasCategories = categories.length > 0;
+
   const availableMonths = Array.from(
     new Set(transactions.map(t => t.date.substring(0, 7)))
   )
@@ -64,7 +66,25 @@ export default function Transactions() {
               Upload your first PDF statement to get started tracking your
               spending
             </p>
-            <button onClick={() => setShowUpload(true)} className="btn-primary">
+            {!hasCategories && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 max-w-md mx-auto">
+                <p className="text-sm text-yellow-800">
+                  💡 <strong>Tip:</strong> Create some categories on the Budget
+                  page before uploading transactions. You already have an
+                  "Other" category, but adding more will help organize your
+                  spending better.
+                </p>
+              </div>
+            )}
+            <button
+              onClick={() => setShowUpload(true)}
+              className="btn-primary"
+              title={
+                !hasCategories
+                  ? "Create categories first to better organize your transactions"
+                  : ""
+              }
+            >
               📥 Upload PDF Statement
             </button>
             <div className="mt-6 text-sm text-gray-500">

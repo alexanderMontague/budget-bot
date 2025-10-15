@@ -9,34 +9,16 @@ import { generateId } from "../util";
 // ];
 
 export const initialCategories: Category[] = [
-  { id: generateId(), name: "Groceries", monthlyBudget: 500, color: "#22c55e" },
-  { id: generateId(), name: "Mortgage", monthlyBudget: 1200, color: "#3b82f6" },
-  { id: generateId(), name: "Utilities", monthlyBudget: 150, color: "#f59e0b" },
-  {
-    id: generateId(),
-    name: "Transportation",
-    monthlyBudget: 200,
-    color: "#8b5cf6",
-  },
-  {
-    id: generateId(),
-    name: "Entertainment",
-    monthlyBudget: 150,
-    color: "#ec4899",
-  },
-  {
-    id: generateId(),
-    name: "Dining Out",
-    monthlyBudget: 300,
-    color: "#ef4444",
-  },
-  {
-    id: generateId(),
-    name: "Healthcare",
-    monthlyBudget: 100,
-    color: "#06b6d4",
-  },
-  { id: generateId(), name: "Savings", monthlyBudget: 800, color: "#10b981" },
+  { id: generateId(), name: "Groceries", color: "#22c55e" },
+  { id: generateId(), name: "Dining Out", color: "#ef4444" },
+  { id: generateId(), name: "Entertainment", color: "#ec4899" },
+  { id: generateId(), name: "Shopping", color: "#8b5cf6" },
+  { id: generateId(), name: "Transportation", color: "#3b82f6" },
+  { id: generateId(), name: "Bills & Utilities", color: "#f59e0b" },
+  { id: generateId(), name: "Subscriptions", color: "#06b6d4" },
+  { id: generateId(), name: "Healthcare", color: "#10b981" },
+  { id: generateId(), name: "Personal Care", color: "#a855f7" },
+  { id: generateId(), name: "Other", color: "#6b7280" },
 ];
 
 // export const mockTransactions: Transaction[] = [

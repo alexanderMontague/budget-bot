@@ -1,6 +1,8 @@
 import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { PdfParser } from "../services/pdfParser";
 import { useTransactions } from "../hooks/useTransactions";
+import { useCategories } from "../hooks/useCategories";
 import type { ParsedTransaction, Transaction } from "../types";
 
 interface TransactionUploadProps {
@@ -27,6 +29,8 @@ export default function TransactionUpload({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { createTransactions } = useTransactions();
+  const { categories } = useCategories();
+  const navigate = useNavigate();
 
   const processFiles = async (files: FileList | File[]) => {
     const pdfFiles = Array.from(files).filter(
@@ -139,6 +143,7 @@ export default function TransactionUpload({
 
   const accountType = uploadResults.transactions[0]?.accountType;
   const totalTransactionCount = uploadResults.transactions.length;
+  const hasCategories = categories.length > 0;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -156,7 +161,34 @@ export default function TransactionUpload({
         </div>
 
         <div className="p-6 overflow-y-auto">
-          {totalTransactionCount === 0 ? (
+          {!hasCategories ? (
+            <div className="text-center py-8">
+              <div className="text-6xl mb-4">🏷️</div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Create Categories First
+              </h3>
+              <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                Before importing transactions, you need to set up at least one
+                category. Categories help you organize and track your spending.
+              </p>
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    navigate("/budget");
+                    onClose();
+                  }}
+                  className="btn-primary"
+                >
+                  Go to Budget Page
+                </button>
+                <p className="text-sm text-gray-500">
+                  You already have an "Other" category for uncategorized
+                  transactions. Create more categories to better organize your
+                  spending.
+                </p>
+              </div>
+            </div>
+          ) : totalTransactionCount === 0 ? (
             <div className="space-y-4">
               <p className="text-gray-600">
                 Upload AMEX or CIBC PDF statements to automatically import

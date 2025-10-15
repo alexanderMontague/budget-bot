@@ -68,6 +68,8 @@ export default function AddCategoryModal({
 
   if (!isOpen) return null;
 
+  const isOtherCategory = category?.name === "Other";
+
   return (
     <div className="modal-backdrop">
       <div className="modal">
@@ -86,7 +88,14 @@ export default function AddCategoryModal({
               placeholder="e.g., Travel"
               className="input"
               required
+              disabled={isOtherCategory}
             />
+            {isOtherCategory && (
+              <p className="text-xs text-gray-500 mt-1">
+                The "Other" category name cannot be changed. It's a default
+                category for uncategorized transactions.
+              </p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
