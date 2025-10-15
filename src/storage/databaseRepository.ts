@@ -16,11 +16,20 @@ export class DatabaseRepository implements StorageRepository {
     };
   }
 
+  private async handleResponse(response: Response): Promise<void> {
+    if (response.status === 401) {
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("auth_user");
+      window.dispatchEvent(new CustomEvent("auth:unauthorized"));
+    }
+  }
+
   // Categories
   async getCategories(): Promise<Category[]> {
     const response = await fetch(`${this.apiBaseUrl}/budget/categories`, {
       headers: this.getHeaders(),
     });
+    await this.handleResponse(response);
     if (!response.ok) throw new Error("Failed to fetch categories");
     return response.json();
   }
@@ -31,6 +40,7 @@ export class DatabaseRepository implements StorageRepository {
       headers: this.getHeaders(),
       body: JSON.stringify(category),
     });
+    await this.handleResponse(response);
     if (!response.ok) throw new Error("Failed to save category");
     return response.json();
   }
@@ -44,6 +54,7 @@ export class DatabaseRepository implements StorageRepository {
       headers: this.getHeaders(),
       body: JSON.stringify(category),
     });
+    await this.handleResponse(response);
     if (!response.ok) throw new Error("Failed to update category");
     return response.json();
   }
@@ -53,6 +64,7 @@ export class DatabaseRepository implements StorageRepository {
       method: "DELETE",
       headers: this.getHeaders(),
     });
+    await this.handleResponse(response);
     if (!response.ok) throw new Error("Failed to delete category");
   }
 
@@ -61,6 +73,7 @@ export class DatabaseRepository implements StorageRepository {
     const response = await fetch(`${this.apiBaseUrl}/budget/budgets`, {
       headers: this.getHeaders(),
     });
+    await this.handleResponse(response);
     if (!response.ok) throw new Error("Failed to fetch budgets");
     return response.json();
   }
@@ -71,6 +84,7 @@ export class DatabaseRepository implements StorageRepository {
       headers: this.getHeaders(),
       body: JSON.stringify(budget),
     });
+    await this.handleResponse(response);
     if (!response.ok) throw new Error("Failed to save budget");
     return response.json();
   }
@@ -81,6 +95,7 @@ export class DatabaseRepository implements StorageRepository {
       headers: this.getHeaders(),
       body: JSON.stringify(budget),
     });
+    await this.handleResponse(response);
     if (!response.ok) throw new Error("Failed to update budget");
     return response.json();
   }
@@ -90,6 +105,7 @@ export class DatabaseRepository implements StorageRepository {
       method: "DELETE",
       headers: this.getHeaders(),
     });
+    await this.handleResponse(response);
     if (!response.ok) throw new Error("Failed to delete budget");
   }
 
@@ -98,6 +114,7 @@ export class DatabaseRepository implements StorageRepository {
       method: "DELETE",
       headers: this.getHeaders(),
     });
+    await this.handleResponse(response);
     if (!response.ok) throw new Error("Failed to delete all budgets");
   }
 
@@ -106,6 +123,7 @@ export class DatabaseRepository implements StorageRepository {
       method: "DELETE",
       headers: this.getHeaders(),
     });
+    await this.handleResponse(response);
     if (!response.ok) throw new Error("Failed to delete all categories");
   }
 
@@ -114,6 +132,7 @@ export class DatabaseRepository implements StorageRepository {
     const response = await fetch(`${this.apiBaseUrl}/budget/transactions`, {
       headers: this.getHeaders(),
     });
+    await this.handleResponse(response);
     if (!response.ok) throw new Error("Failed to fetch transactions");
     return response.json();
   }
@@ -126,6 +145,7 @@ export class DatabaseRepository implements StorageRepository {
       headers: this.getHeaders(),
       body: JSON.stringify(transaction),
     });
+    await this.handleResponse(response);
     if (!response.ok) throw new Error("Failed to save transaction");
     return response.json();
   }
@@ -142,6 +162,7 @@ export class DatabaseRepository implements StorageRepository {
         body: JSON.stringify(updates),
       }
     );
+    await this.handleResponse(response);
     if (!response.ok) throw new Error("Failed to update transaction");
     return response.json();
   }
@@ -154,6 +175,7 @@ export class DatabaseRepository implements StorageRepository {
         headers: this.getHeaders(),
       }
     );
+    await this.handleResponse(response);
     if (!response.ok) throw new Error("Failed to delete transaction");
   }
 
@@ -162,6 +184,7 @@ export class DatabaseRepository implements StorageRepository {
       method: "DELETE",
       headers: this.getHeaders(),
     });
+    await this.handleResponse(response);
     if (!response.ok) throw new Error("Failed to delete all transactions");
   }
 
@@ -171,6 +194,7 @@ export class DatabaseRepository implements StorageRepository {
       method: "DELETE",
       headers: this.getHeaders(),
     });
+    await this.handleResponse(response);
     if (!response.ok) throw new Error("Failed to clear data");
   }
 
@@ -178,6 +202,7 @@ export class DatabaseRepository implements StorageRepository {
     const response = await fetch(`${this.apiBaseUrl}/budget/export`, {
       headers: this.getHeaders(),
     });
+    await this.handleResponse(response);
     if (!response.ok) throw new Error("Failed to export data");
     return response.text();
   }
@@ -188,6 +213,7 @@ export class DatabaseRepository implements StorageRepository {
       headers: this.getHeaders(),
       body: data,
     });
+    await this.handleResponse(response);
     if (!response.ok) throw new Error("Failed to import data");
   }
 }

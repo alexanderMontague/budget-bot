@@ -1,4 +1,5 @@
-import { createContext, useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
+import { AuthContext } from "../hooks/useAuth";
 
 interface User {
   id: number;
@@ -15,8 +16,6 @@ export interface AuthContextType {
   isLoading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8088";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -24,15 +23,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const storedToken = localStorage.getItem("auth_token");
-    const storedUser = localStorage.getItem("auth_user");
+  const clearAuth = () => {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("auth_user");
+  };
 
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+  const validateToken = async (storedToken: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/budget/me`, {
+        headers: {
+          Authorization: `Bearer ${storedToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        return false;
+      }
+
+      const userData = await response.json();
+      setUser({ id: userData.id, email: userData.email });
+      return true;
+    } catch {
+      return false;
     }
-    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    const initAuth = async () => {
+      const storedToken = localStorage.getItem("auth_token");
+      const storedUser = localStorage.getItem("auth_user");
+
+      if (storedToken && storedUser) {
+        const isValid = await validateToken(storedToken);
+        if (isValid) {
+          setToken(storedToken);
+        } else {
+          clearAuth();
+        }
+      }
+      setIsLoading(false);
+    };
+
+    const handleUnauthorized = () => {
+      clearAuth();
+    };
+
+    window.addEventListener("auth:unauthorized", handleUnauthorized);
+    initAuth();
+
+    return () => {
+      window.removeEventListener("auth:unauthorized", handleUnauthorized);
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -74,10 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("auth_user");
+    clearAuth();
   };
 
   return (

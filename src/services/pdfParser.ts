@@ -147,7 +147,7 @@ export class PdfParser {
   }
 
   private static parseCibcStatement(
-    text: string,
+    _text: string,
     errors: string[]
   ): PdfParseResult {
     return {
