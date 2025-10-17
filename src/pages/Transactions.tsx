@@ -3,7 +3,7 @@ import { useTransactions } from "../hooks/useTransactions";
 import { useCategories } from "../hooks/useCategories";
 import { useDate } from "../hooks/useDate";
 import TransactionUpload from "../components/TransactionUpload";
-import { formatDateToHumanReadable } from "../util";
+import { formatDateToHumanReadable, getTransactionBudgetMonth } from "../util";
 
 export default function Transactions() {
   const { transactions, updateTransaction, deleteTransaction } =
@@ -11,18 +11,20 @@ export default function Transactions() {
   const { categories } = useCategories();
   const { currentMonthAndYear } = useDate();
   const [showUpload, setShowUpload] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState(currentMonthAndYear);
+  const [_selectedMonth, setSelectedMonth] = useState(currentMonthAndYear);
 
   const hasCategories = categories.length > 0;
 
   const availableMonths = Array.from(
-    new Set(transactions.map(t => t.date.substring(0, 7)))
+    new Set(transactions.map(t => getTransactionBudgetMonth(t)))
   )
     .sort()
     .reverse();
+  const computedSelectedMonth =
+    availableMonths.find(m => m === _selectedMonth) || availableMonths[0];
 
   const filteredTransactions = transactions
-    .filter(t => t.date.startsWith(selectedMonth))
+    .filter(t => t.date.startsWith(computedSelectedMonth))
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const handleCategoryChange = async (
@@ -125,7 +127,7 @@ export default function Transactions() {
               <h2 className="heading-4">All Transactions</h2>
               <select
                 className="select"
-                value={selectedMonth}
+                value={computedSelectedMonth}
                 onChange={e => setSelectedMonth(e.target.value)}
               >
                 {availableMonths.map(month => (
