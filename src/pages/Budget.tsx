@@ -24,7 +24,6 @@ export default function Budget() {
   const { currentMonthAndYear, currentMonthAndYearTitle } = useDate();
 
   const [allocations, setAllocations] = useState<Record<string, number>>({});
-  const [availableToBudget, setAvailableToBudget] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -56,7 +55,6 @@ export default function Budget() {
     if (currentBudget) {
       // Use existing budget
       setAllocations(currentBudget.allocations);
-      setAvailableToBudget(currentBudget.availableToBudget);
     } else {
       // Initialize new budget
       const previousBudget = getPreviousMonthBudget();
@@ -77,8 +75,6 @@ export default function Budget() {
       });
 
       setAllocations(initialAllocations);
-      // Start with 0 available to budget for new budgets
-      setAvailableToBudget(0);
     }
 
     setIsInitialized(true);
@@ -97,16 +93,10 @@ export default function Budget() {
   );
 
   const handleAllocationChange = (categoryId: string, amount: number) => {
-    const oldAmount = allocations[categoryId] || 0;
-    const difference = amount - oldAmount;
-
-    if (availableToBudget - difference >= 0) {
-      setAllocations(prev => ({
-        ...prev,
-        [categoryId]: amount,
-      }));
-      setAvailableToBudget(prev => prev - difference);
-    }
+    setAllocations(prev => ({
+      ...prev,
+      [categoryId]: amount,
+    }));
   };
 
   const handleSaveBudget = async () => {
@@ -117,13 +107,11 @@ export default function Budget() {
       if (currentBudget) {
         await updateBudget(currentBudget.id, {
           allocations,
-          availableToBudget,
         });
       } else {
         await createBudget({
           month: currentMonthAndYear,
           allocations,
-          availableToBudget,
         });
       }
     } catch (error) {
@@ -283,7 +271,7 @@ export default function Budget() {
                           {category.name}
                         </h3>
                         <p className="text-sm text-gray-500">
-                          Default Budget: $
+                          Monthly Budget: $
                           {category.monthlyBudget?.toFixed(2) || "0.00"}
                         </p>
                       </div>
@@ -354,13 +342,13 @@ export default function Budget() {
                 <div className="bg-gray-50 rounded-lg p-6 mb-6">
                   <div className="text-center">
                     <h3 className="text-lg font-medium text-gray-500 mb-2">
-                      Available to Budget
+                      Total Allocated
                     </h3>
                     <p className="text-4xl font-bold text-primary-600">
-                      ${availableToBudget.toFixed(2)}
+                      ${totalAllocated.toFixed(2)}
                     </p>
                     <p className="text-sm text-gray-500 mt-2">
-                      Total Allocated: ${totalAllocated.toFixed(2)}
+                      Set your budget allocations for each category
                     </p>
                   </div>
                 </div>
@@ -448,7 +436,6 @@ export default function Budget() {
                   <button
                     onClick={() => {
                       const previousBudget = getPreviousMonthBudget();
-                      const remaining = availableToBudget + totalAllocated;
                       const newAllocations: Record<string, number> = {};
 
                       categories.forEach(category => {
@@ -459,13 +446,6 @@ export default function Budget() {
                       });
 
                       setAllocations(newAllocations);
-                      setAvailableToBudget(
-                        remaining -
-                          Object.values(newAllocations).reduce(
-                            (sum, amount) => sum + amount,
-                            0
-                          )
-                      );
                     }}
                     className="btn-secondary"
                   >
@@ -476,37 +456,11 @@ export default function Budget() {
 
                   <button
                     onClick={() => {
-                      const remaining = availableToBudget + totalAllocated;
                       setAllocations({});
-                      setAvailableToBudget(remaining);
                     }}
                     className="btn-secondary"
                   >
                     Clear All Allocations
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      const remaining = availableToBudget;
-                      const perCategory = Math.floor(
-                        remaining / categories.length
-                      );
-                      const newAllocations: Record<string, number> = {};
-
-                      categories.forEach(category => {
-                        newAllocations[category.id] =
-                          (allocations[category.id] || 0) + perCategory;
-                      });
-
-                      const newAvailableToBudget =
-                        remaining - perCategory * categories.length;
-                      setAllocations(newAllocations);
-                      setAvailableToBudget(newAvailableToBudget);
-                    }}
-                    className="btn-secondary text-sm whitespace-nowrap sm:col-span-2 lg:col-span-1"
-                    disabled={availableToBudget <= 0 || categories.length === 0}
-                  >
-                    Distribute Remaining
                   </button>
                 </div>
               </>

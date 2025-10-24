@@ -11,7 +11,6 @@ export interface Budget {
   id: string;
   month: string; // YYYY-MM format
   allocations: Record<string, number>; // categoryId -> budgetedAmount
-  availableToBudget: number;
 }
 
 export interface Transaction extends ParsedTransaction {

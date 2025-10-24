@@ -21,13 +21,9 @@ export default function Reports() {
   const categorySpending = categories
     .map(category => {
       const categoryTransactions = currentMonthTransactions.filter(
-        t => t.categoryId === category.id
+        t => t.categoryId === category.id && t.transactionType === "CREDIT"
       );
-      const spent = Math.abs(
-        categoryTransactions
-          .filter(t => t.amount < 0)
-          .reduce((sum, t) => sum + t.amount, 0)
-      );
+      const spent = categoryTransactions.reduce((sum, t) => sum + t.amount, 0);
       const budgeted = currentBudget?.allocations[category.id] || 0;
       const percentage = budgeted > 0 ? (spent / budgeted) * 100 : 0;
 
@@ -42,11 +38,9 @@ export default function Reports() {
     .filter(item => item.budgeted > 0 || item.spent > 0)
     .sort((a, b) => b.spent - a.spent);
 
-  const totalSpent = Math.abs(
-    currentMonthTransactions
-      .filter(t => t.amount < 0)
-      .reduce((sum, t) => sum + t.amount, 0)
-  );
+  const totalSpent = currentMonthTransactions
+    .filter(t => t.transactionType === "CREDIT")
+    .reduce((sum, t) => sum + t.amount, 0);
   const totalBudgeted = currentBudget
     ? Object.values(currentBudget.allocations).reduce(
         (sum, amount) => sum + amount,
@@ -54,7 +48,7 @@ export default function Reports() {
       )
     : 0;
   const totalIncome = currentMonthTransactions
-    .filter(t => t.amount > 0)
+    .filter(t => t.transactionType === "DEBIT")
     .reduce((sum, t) => sum + t.amount, 0);
 
   return (
@@ -253,13 +247,15 @@ export default function Reports() {
                         <div className="text-right flex-shrink-0">
                           <p
                             className={`font-semibold ${
-                              transaction.amount < 0
+                              transaction.transactionType === "CREDIT"
                                 ? "text-red-600"
                                 : "text-green-600"
                             }`}
                           >
-                            {transaction.amount < 0 ? "-" : "+"}$
-                            {Math.abs(transaction.amount).toFixed(2)}
+                            {transaction.transactionType === "CREDIT"
+                              ? "-"
+                              : "+"}
+                            ${transaction.amount.toFixed(2)}
                           </p>
                           <p className="text-xs text-gray-500 uppercase">
                             {transaction.accountType}

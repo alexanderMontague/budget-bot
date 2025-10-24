@@ -74,7 +74,6 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
                 acc[category.id] = category.monthlyBudget || 0;
                 return acc;
               }, {} as Record<string, number>),
-              availableToBudget: 0,
             });
             budgetCache.set(month, newBudget);
           }

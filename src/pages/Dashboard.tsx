@@ -26,14 +26,15 @@ function calculateCategoryProgress(
   return categories.map(category => {
     const budgeted = currentBudget.allocations[category.id] || 0;
 
-    // Calculate spent amount from transactions for this month
-    const spent = Math.abs(
-      transactions
-        .filter(
-          t => t.categoryId === category.id && t.date.startsWith(currentMonth)
-        )
-        .reduce((sum, t) => sum + t.amount, 0)
-    );
+    // Calculate spent amount from transactions for this month (CREDIT = expenses)
+    const spent = transactions
+      .filter(
+        t =>
+          t.categoryId === category.id &&
+          t.date.startsWith(currentMonth) &&
+          t.transactionType === "CREDIT"
+      )
+      .reduce((sum, t) => sum + t.amount, 0);
 
     const remaining = budgeted - spent;
 
@@ -150,25 +151,7 @@ export default function Dashboard() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="card">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">
-                <span className="text-primary-600 font-semibold">💰</span>
-              </div>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">
-                Available to Budget
-              </p>
-              <p className="text-2xl font-bold text-gray-900">
-                ${currentBudget?.availableToBudget?.toFixed(2) || "0.00"}
-              </p>
-            </div>
-          </div>
-        </div>
-
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="card">
           <div className="flex items-center">
             <div className="flex-shrink-0">

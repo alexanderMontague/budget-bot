@@ -200,12 +200,12 @@ export default function TransactionUpload({
                 Set Default Monthly Budgets
               </h3>
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                Before importing transactions, all categories need default
-                monthly budget amounts set.
+                Before importing transactions, all categories need monthly
+                budget amounts set.
               </p>
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 max-w-md mx-auto">
                 <h4 className="font-medium text-amber-900 mb-2">
-                  Categories Missing Default Budgets:
+                  Categories Missing Budget Amounts:
                 </h4>
                 <ul className="text-sm text-amber-800 space-y-1">
                   {categoriesWithoutBudgets.map(category => (
@@ -348,12 +348,15 @@ export default function TransactionUpload({
                           <div className="text-right">
                             <div
                               className={`font-medium ${
-                                transaction.amount < 0
+                                transaction.transactionType === "CREDIT"
                                   ? "text-red-600"
                                   : "text-green-600"
                               }`}
                             >
-                              ${Math.abs(transaction.amount).toFixed(2)}
+                              {transaction.transactionType === "CREDIT"
+                                ? "-"
+                                : "+"}
+                              ${transaction.amount.toFixed(2)}
                             </div>
                           </div>
                         </div>
