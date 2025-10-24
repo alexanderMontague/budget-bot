@@ -127,6 +127,19 @@ export class DatabaseRepository implements StorageRepository {
     if (!response.ok) throw new Error("Failed to delete all categories");
   }
 
+  async createDefaultCategories(): Promise<Category[]> {
+    const response = await fetch(
+      `${this.apiBaseUrl}/budget/categories/defaults`,
+      {
+        method: "POST",
+        headers: this.getHeaders(),
+      }
+    );
+    await this.handleResponse(response);
+    if (!response.ok) throw new Error("Failed to create default categories");
+    return response.json();
+  }
+
   // Transactions
   async getTransactions(): Promise<Transaction[]> {
     const response = await fetch(`${this.apiBaseUrl}/budget/transactions`, {

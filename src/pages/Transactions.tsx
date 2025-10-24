@@ -52,9 +52,6 @@ export default function Transactions() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="heading-2">Transactions</h1>
-        <button onClick={() => setShowUpload(true)} className="btn-primary">
-          📥 Upload PDF Statement
-        </button>
       </div>
 
       {transactions.length === 0 ? (

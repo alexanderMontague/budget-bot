@@ -50,6 +50,10 @@ class DataService {
     return this.repository.deleteAllCategories();
   }
 
+  async createDefaultCategories(): Promise<Category[]> {
+    return this.repository.createDefaultCategories();
+  }
+
   // Budgets
   async getBudgets(): Promise<Budget[]> {
     return this.repository.getBudgets();

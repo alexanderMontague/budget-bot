@@ -135,6 +135,7 @@ export class PdfParser {
         merchant: it[2],
         amount: Number(it[it.length - 1]),
         accountType: "amex",
+        transactionType: "CREDIT" as const,
       }));
 
     return {

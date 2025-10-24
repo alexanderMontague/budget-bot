@@ -102,6 +102,37 @@ export class LocalStorageRepository implements StorageRepository {
     await this.saveData(data);
   }
 
+  async createDefaultCategories(): Promise<Category[]> {
+    const data = await this.loadData();
+    const now = new Date().toISOString();
+
+    const defaultCategories: Array<{ name: string; color: string }> = [
+      { name: "Groceries", color: "#22c55e" },
+      { name: "Dining Out", color: "#ef4444" },
+      { name: "Entertainment", color: "#ec4899" },
+      { name: "Shopping", color: "#8b5cf6" },
+      { name: "Transportation", color: "#3b82f6" },
+      { name: "Bills & Utilities", color: "#f59e0b" },
+      { name: "Subscriptions", color: "#06b6d4" },
+      { name: "Mortgage", color: "#06b6d4" },
+      { name: "Insurance", color: "#06b6d4" },
+      { name: "Healthcare", color: "#10b981" },
+      { name: "Other", color: "#6b7280" },
+    ];
+
+    const newCategories: Category[] = defaultCategories.map(dc => ({
+      id: crypto.randomUUID(),
+      name: dc.name,
+      color: dc.color,
+      createdAt: now,
+      updatedAt: now,
+    }));
+
+    data.categories.push(...newCategories);
+    await this.saveData(data);
+    return newCategories;
+  }
+
   // Budgets
   async getBudgets(): Promise<Budget[]> {
     const data = await this.loadData();

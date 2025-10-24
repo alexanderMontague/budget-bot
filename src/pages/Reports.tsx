@@ -61,25 +61,27 @@ export default function Reports() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="heading-2">Reports & Analytics</h1>
-        <div className="flex flex-col sm:flex-row gap-3 sm:space-x-3 sm:gap-0">
-          <select
-            className="select text-sm"
-            value={selectedMonthAndYear}
-            onChange={e => setSelectedMonthAndYear(e.target.value)}
-          >
-            {budgets
-              .sort(
-                (a, b) =>
-                  new Date(a.month).getTime() - new Date(b.month).getTime()
-              )
-              .map(budget => (
-                <option key={budget.id} value={budget.month}>
-                  {formatDateToHumanReadable(budget.month)}
-                </option>
-              ))}
-          </select>
-          <button className="btn-secondary">Export Data</button>
-        </div>
+        {budgets.length > 0 && (
+          <div className="flex flex-col sm:flex-row gap-3 sm:space-x-3 sm:gap-0">
+            <select
+              className="select text-sm"
+              value={selectedMonthAndYear}
+              onChange={e => setSelectedMonthAndYear(e.target.value)}
+            >
+              {budgets
+                .sort(
+                  (a, b) =>
+                    new Date(a.month).getTime() - new Date(b.month).getTime()
+                )
+                .map(budget => (
+                  <option key={budget.id} value={budget.month}>
+                    {formatDateToHumanReadable(budget.month)}
+                  </option>
+                ))}
+            </select>
+            <button className="btn-secondary">Export Data</button>
+          </div>
+        )}
       </div>
 
       {/* Overview Cards */}

@@ -12,6 +12,7 @@ export interface CategoriesContextType {
   updateCategory: (id: string, updates: Partial<Category>) => Promise<Category>;
   deleteCategory: (id: string) => Promise<void>;
   deleteAllCategories: () => Promise<void>;
+  createDefaultCategories: () => Promise<Category[]>;
   loadCategories: () => Promise<void>;
 }
 
@@ -93,6 +94,21 @@ export const CategoriesProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+  const createDefaultCategories = useCallback(async () => {
+    try {
+      const newCategories = await dataService.createDefaultCategories();
+      setCategories(prev => [...prev, ...newCategories]);
+      return newCategories;
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to create default categories"
+      );
+      throw err;
+    }
+  }, []);
+
   useEffect(() => {
     loadCategories();
   }, [loadCategories]);
@@ -107,6 +123,7 @@ export const CategoriesProvider = ({ children }: { children: ReactNode }) => {
         updateCategory,
         deleteCategory,
         deleteAllCategories,
+        createDefaultCategories,
         loadCategories,
       }}
     >

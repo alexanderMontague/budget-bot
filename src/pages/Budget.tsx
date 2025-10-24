@@ -12,6 +12,7 @@ export default function Budget() {
     createCategory,
     updateCategory,
     deleteCategory,
+    createDefaultCategories,
   } = useCategories();
   const {
     budgets,
@@ -33,6 +34,7 @@ export default function Budget() {
   const [activeTab, setActiveTab] = useState<"categories" | "allocations">(
     "categories"
   );
+  const [creatingDefaults, setCreatingDefaults] = useState(false);
 
   const currentBudget = getCurrentBudget();
   const loading = categoriesLoading || budgetsLoading;
@@ -176,6 +178,20 @@ export default function Budget() {
     }
   };
 
+  const handleCreateDefaults = async () => {
+    setCreatingDefaults(true);
+    try {
+      await createDefaultCategories();
+    } catch (error) {
+      console.error("Failed to create default categories:", error);
+      alert("Failed to create default categories. Please try again.");
+    } finally {
+      setCreatingDefaults(false);
+    }
+  };
+
+  const noCategories = categories.length === 0;
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
@@ -226,24 +242,29 @@ export default function Budget() {
                   budgets
                 </p>
               </div>
-              <button
-                onClick={() => setShowCategoryModal(true)}
-                className="btn-primary"
-              >
-                + Add Category
-              </button>
+              <div className="flex flex-col sm:flex-row gap-2">
+                {noCategories && (
+                  <button
+                    onClick={handleCreateDefaults}
+                    disabled={creatingDefaults}
+                    className="btn-secondary"
+                  >
+                    {creatingDefaults ? "Creating..." : "Generate Defaults"}
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowCategoryModal(true)}
+                  className="btn-primary"
+                >
+                  + Add Category
+                </button>
+              </div>
             </div>
 
-            {categories.length === 0 ? (
+            {noCategories ? (
               <div className="text-center py-8">
                 <div className="text-4xl mb-2">📂</div>
                 <p className="text-gray-600 mb-4">No categories yet</p>
-                <button
-                  onClick={() => setShowCategoryModal(true)}
-                  className="btn-secondary"
-                >
-                  Create Your First Category
-                </button>
               </div>
             ) : (
               <div className="space-y-3">

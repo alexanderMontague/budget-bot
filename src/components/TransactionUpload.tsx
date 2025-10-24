@@ -145,6 +145,12 @@ export default function TransactionUpload({
   const totalTransactionCount = uploadResults.transactions.length;
   const hasCategories = categories.length > 0;
 
+  const categoriesWithoutBudgets = categories.filter(
+    category => !category.monthlyBudget || category.monthlyBudget === 0
+  );
+  const allCategoriesHaveBudgets =
+    hasCategories && categoriesWithoutBudgets.length === 0;
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
@@ -182,11 +188,40 @@ export default function TransactionUpload({
                   Go to Budget Page
                 </button>
                 <p className="text-sm text-gray-500">
-                  You already have an "Other" category for uncategorized
-                  transactions. Create more categories to better organize your
-                  spending.
+                  Visit the budget page to generate default categories or create
+                  your own.
                 </p>
               </div>
+            </div>
+          ) : !allCategoriesHaveBudgets ? (
+            <div className="text-center py-8">
+              <div className="text-6xl mb-4">💰</div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Set Default Monthly Budgets
+              </h3>
+              <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                Before importing transactions, all categories need default
+                monthly budget amounts set.
+              </p>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 max-w-md mx-auto">
+                <h4 className="font-medium text-amber-900 mb-2">
+                  Categories Missing Default Budgets:
+                </h4>
+                <ul className="text-sm text-amber-800 space-y-1">
+                  {categoriesWithoutBudgets.map(category => (
+                    <li key={category.id}>• {category.name}</li>
+                  ))}
+                </ul>
+              </div>
+              <button
+                onClick={() => {
+                  navigate("/budget");
+                  onClose();
+                }}
+                className="btn-primary"
+              >
+                Go to Budget Page
+              </button>
             </div>
           ) : totalTransactionCount === 0 ? (
             <div className="space-y-4">

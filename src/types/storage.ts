@@ -7,6 +7,7 @@ export interface StorageRepository {
   updateCategory(id: string, category: Partial<Category>): Promise<Category>;
   deleteCategory(id: string): Promise<void>;
   deleteAllCategories(): Promise<void>;
+  createDefaultCategories(): Promise<Category[]>;
 
   // Budgets
   getBudgets(): Promise<Budget[]>;
