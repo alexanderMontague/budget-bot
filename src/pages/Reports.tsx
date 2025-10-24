@@ -21,7 +21,7 @@ export default function Reports() {
   const categorySpending = categories
     .map(category => {
       const categoryTransactions = currentMonthTransactions.filter(
-        t => t.categoryId === category.id && t.transactionType === "CREDIT"
+        t => t.categoryId === category.id && t.transactionType === "DEBIT"
       );
       const spent = categoryTransactions.reduce((sum, t) => sum + t.amount, 0);
       const budgeted = currentBudget?.allocations[category.id] || 0;
@@ -39,7 +39,7 @@ export default function Reports() {
     .sort((a, b) => b.spent - a.spent);
 
   const totalSpent = currentMonthTransactions
-    .filter(t => t.transactionType === "CREDIT")
+    .filter(t => t.transactionType === "DEBIT")
     .reduce((sum, t) => sum + t.amount, 0);
   const totalBudgeted = currentBudget
     ? Object.values(currentBudget.allocations).reduce(
@@ -48,7 +48,7 @@ export default function Reports() {
       )
     : 0;
   const totalIncome = currentMonthTransactions
-    .filter(t => t.transactionType === "DEBIT")
+    .filter(t => t.transactionType === "CREDIT")
     .reduce((sum, t) => sum + t.amount, 0);
 
   return (
@@ -247,12 +247,12 @@ export default function Reports() {
                         <div className="text-right flex-shrink-0">
                           <p
                             className={`font-semibold ${
-                              transaction.transactionType === "CREDIT"
+                              transaction.transactionType === "DEBIT"
                                 ? "text-red-600"
                                 : "text-green-600"
                             }`}
                           >
-                            {transaction.transactionType === "CREDIT"
+                            {transaction.transactionType === "DEBIT"
                               ? "-"
                               : "+"}
                             ${transaction.amount.toFixed(2)}

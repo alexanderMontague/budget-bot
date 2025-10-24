@@ -43,11 +43,11 @@ export default function Transactions() {
   const monthStats = {
     totalTx: filteredTransactions.length,
     totalExpenses: filteredTransactions
-      .filter(t => t.transactionType === "CREDIT")
+      .filter(t => t.transactionType === "DEBIT")
       .reduce((sum, t) => sum + t.amount, 0)
       .toFixed(2),
     totalIncomes: filteredTransactions
-      .filter(t => t.transactionType === "DEBIT")
+      .filter(t => t.transactionType === "CREDIT")
       .reduce((sum, t) => sum + t.amount, 0)
       .toFixed(2),
   };
@@ -192,13 +192,13 @@ export default function Transactions() {
                       <div className="text-right min-w-[80px]">
                         <p
                           className={`font-semibold ${
-                            transaction.transactionType === "CREDIT"
+                            transaction.transactionType === "DEBIT"
                               ? "text-red-600"
                               : "text-green-600"
                           }`}
                         >
-                          {transaction.transactionType === "CREDIT" ? "-" : "+"}
-                          ${transaction.amount.toFixed(2)}
+                          {transaction.transactionType === "DEBIT" ? "-" : "+"}$
+                          {transaction.amount.toFixed(2)}
                         </p>
                       </div>
 

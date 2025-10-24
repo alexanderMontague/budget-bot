@@ -26,13 +26,13 @@ function calculateCategoryProgress(
   return categories.map(category => {
     const budgeted = currentBudget.allocations[category.id] || 0;
 
-    // Calculate spent amount from transactions for this month (CREDIT = expenses)
+    // Calculate spent amount from transactions for this month (DEBIT = expenses)
     const spent = transactions
       .filter(
         t =>
           t.categoryId === category.id &&
           t.date.startsWith(currentMonth) &&
-          t.transactionType === "CREDIT"
+          t.transactionType === "DEBIT"
       )
       .reduce((sum, t) => sum + t.amount, 0);
 

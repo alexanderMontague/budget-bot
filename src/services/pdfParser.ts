@@ -2,6 +2,9 @@ import * as pdfjsLib from "pdfjs-dist";
 import type { ParsedTransaction } from "../types";
 import { formatDateToYYYYMMDD } from "../util";
 
+// This is not great. The idea was that this was only going to be used with local storage, but then I wanted to integrate LLM categorization.
+// Ideally the PDF gets sent to the server for parsing, but we're riding with this for now.
+
 // Set up PDF.js worker with fallback options
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
@@ -135,7 +138,7 @@ export class PdfParser {
         merchant: it[2],
         amount: Number(it[it.length - 1]),
         accountType: "amex",
-        transactionType: "CREDIT" as const,
+        transactionType: "DEBIT" as const,
       }));
 
     return {

@@ -348,12 +348,12 @@ export default function TransactionUpload({
                           <div className="text-right">
                             <div
                               className={`font-medium ${
-                                transaction.transactionType === "CREDIT"
+                                transaction.transactionType === "DEBIT"
                                   ? "text-red-600"
                                   : "text-green-600"
                               }`}
                             >
-                              {transaction.transactionType === "CREDIT"
+                              {transaction.transactionType === "DEBIT"
                                 ? "-"
                                 : "+"}
                               ${transaction.amount.toFixed(2)}

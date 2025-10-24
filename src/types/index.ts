@@ -28,7 +28,7 @@ export interface ParsedTransaction {
   amount: number;
   description: string;
   accountType: string; // e.g., "amex", "cibc", "td", "rbc", "manual"
-  transactionType: "DEBIT" | "CREDIT"; // DEBIT = income, CREDIT = expense
+  transactionType: "DEBIT" | "CREDIT"; // DEBIT = expense, CREDIT = income
 }
 
 export interface Account {
